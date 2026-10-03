@@ -1,0 +1,18 @@
+{
+  // Type-check only (editor, specs). tsconfig.build.json is the only config that emits.
+  // This source is also compiled inside apps/api (nodenext, decorators) and apps/web (bundler,
+  // verbatimModuleSyntax, DOM), so it must stay valid under all three option sets.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["vitest/globals"]
+  },
+  "include": ["src", "vitest.config.ts"]
+}

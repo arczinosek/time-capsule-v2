@@ -1,0 +1,26 @@
+{
+  "name": "time-capsule",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "api:start:dev": "pnpm --filter \"api^...\" run build && pnpm --filter \"api...\" run --parallel start:dev",
+    "api:test:unit": "vitest run --project api",
+    "api:test:e2e": "pnpm --filter api test:e2e",
+    "api:test": "pnpm api:test:unit && pnpm api:test:e2e",
+    "front:start:dev": "pnpm --filter web dev --host",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm --filter api test:e2e",
+    "front:test": "vitest run --project web",
+    "format": "pnpm -r format"
+  },
+  "devDependencies": {
+    "vitest": "catalog:"
+  }
+}

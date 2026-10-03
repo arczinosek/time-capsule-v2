@@ -1,0 +1,20 @@
+services:
+  database:
+    image: mysql:lts
+    environment:
+      - MYSQL_DATABASE=time-capsule
+      - MYSQL_USER=time-capsule-app
+      - MYSQL_PASSWORD=eluspac-emit
+      - MYSQL_ROOT_PASSWORD=toor
+    volumes:
+      - vol-db-data:/var/lib/mysql
+    networks:
+      - net-time-capsule
+
+volumes:
+  vol-db-data: {}
+
+networks:
+  net-time-capsule:
+    name: net-time-capsule
+    external: true

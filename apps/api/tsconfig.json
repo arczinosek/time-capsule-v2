@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    // Resolve @time-capsule/shared to its TS source (see packages/shared/package.json exports).
+    // Inherited by tsconfig.build.json on purpose: don't override it there.
+    "customConditions": ["@time-capsule/source"],
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "noEmit": true,
+    "rootDir": ".",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "types": ["vitest/globals", "node"]
+  }
+}

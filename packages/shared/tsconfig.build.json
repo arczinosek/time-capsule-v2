@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  // Emits dist/ for one consumer only: Node running apps/api/dist (the "default" export).
+  // Every TypeScript-aware tool reads src/ through the "@time-capsule/source" condition,
+  // so no declarations are emitted.
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.test.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  // Read by the shadcn CLI, which doesn't follow references. `~/` (not shadcn's default `@/`)
+  // keeps web-local imports visually distinct from `@time-capsule/*` packages.
+  "compilerOptions": {
+    "paths": { "~/*": ["./src/*"] }
+  }
+}

@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+
+# One version for dependencies that several workspace packages declare and that must not drift.
+# Reference them as "<name>": "catalog:" in package.json.
+catalog:
+  typescript: ^6.0.2 # stay on 6.x: @nestjs/cli 12 drives the TypeScript 6 compiler API (npm latest is 7)
+  vitest: ^4.1.11 # 5.x exists; upgrade separately
+  zod: ^4.6.5
+
+allowBuilds:
+  esbuild: false
+  # msw's postinstall only copies mockServiceWorker.js for browser mocking; tests use msw/node.
+  msw: false
