@@ -32,6 +32,26 @@ export function MilestoneDetail({
       ) : (
         <p className="text-muted-foreground">{t('milestones.noDescription')}</p>
       )}
+      {milestone.familyMembers.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">
+            {t('milestones.participants')}
+          </h2>
+          <ul className="flex flex-wrap gap-x-4 gap-y-1">
+            {milestone.familyMembers.map((familyMember) => (
+              <li key={familyMember.id}>
+                <Link
+                  to="/family-members/$familyMemberId"
+                  params={{ familyMemberId: familyMember.id }}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {familyMember.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="flex gap-2">
         <Button variant="outline" size="sm" asChild>
           <Link

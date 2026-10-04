@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { descriptionSchema, idSchema, isoDateSchema } from './common.js';
 import { messages } from './messages.js';
+import { familyMemberSummarySchema } from './summaries.js';
 
 // Wire slugs (also the MySQL enum values, see apps/api/src/database/schema.ts). The web shows
 // them through the `category.<slug>` i18n keys. Changing this list needs a migration.
@@ -29,6 +30,9 @@ export const createMilestoneRequestSchema = z.object({
     .max(255, messages.titleTooLong),
   description: descriptionSchema.nullish(),
   category: milestoneCategorySchema.nullish(),
+  // The participants. Replaces the whole set when present; absent leaves it unchanged. Not
+  // .default([]): through .partial() that would clear the participants on every PATCH.
+  familyMemberIds: z.array(idSchema).optional(),
 });
 
 export const updateMilestoneRequestSchema = createMilestoneRequestSchema
@@ -43,10 +47,21 @@ export const milestoneResponseSchema = z.object({
   title: z.string(),
   description: z.string().nullable(),
   category: milestoneCategorySchema.nullable(),
+  /** Sorted by name. */
+  familyMembers: z.array(familyMemberSummarySchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+});
+
+/** A milestone as other features embed it (e.g. a family member's detail). */
+export const milestoneSummarySchema = milestoneResponseSchema.pick({
+  id: true,
+  date: true,
+  title: true,
+  category: true,
 });
 
 export type CreateMilestoneRequest = z.infer<typeof createMilestoneRequestSchema>;
 export type UpdateMilestoneRequest = z.infer<typeof updateMilestoneRequestSchema>;
 export type MilestoneResponse = z.infer<typeof milestoneResponseSchema>;
+export type MilestoneSummary = z.infer<typeof milestoneSummarySchema>;

@@ -7,7 +7,9 @@ description: Recipe for adding a feature end to end in the Time Capsule monorepo
 
 Milestones is the reference implementation. Before writing anything, open the matching
 milestones file for each step below and copy its shape; the conventions behind it are in
-CLAUDE.md. This skill covers **order**, **wiring** and the **traps** that actually bit
+CLAUDE.md. For **relations** (a foreign key, a many-to-many, cross-field rules, checks that need
+the database, a picker of other rows), family members is the reference: `family-members.ts`,
+`apps/api/src/family-members/*`, milestone participants, `features/family-members/*`. This skill covers **order**, **wiring** and the **traps** that actually bit
 while the reference was built.
 
 The order matters because each layer compiles against the one before it. The contract comes
@@ -43,6 +45,14 @@ Reference: `packages/shared/src/milestones.ts`, `milestones.spec.ts`.
   Shared is nodenext ESM.
 - Keep it framework-free and plain. It is type-checked under the api's options (decorators,
   `isolatedModules`) and the web's (`verbatimModuleSyntax`, DOM).
+- **Cross-field rules** (`deathAfterBirth`, `distinctParents` in `family-members.ts`): export an
+  unrefined `xFieldsSchema` and each rule as a tuple `[check, { path, error: messages.key }]`;
+  `createX = fields.refine(...rule)`, `updateX = fields.partial().refine(nonEmpty).refine(...rule)`.
+- **Relations**: a many-to-many is `xIds: z.array(idSchema).optional()` on the owner's create
+  request (never `.default([])`); the response embeds a summary array (`familyMembers:
+  familyMemberSummarySchema[]`). Summary schemas embedded across features go in the leaf
+  `summaries.ts`; `milestoneSummarySchema` stays in `milestones.ts`, imported one way. A detail
+  endpoint that shows relations answers `xDetailResponseSchema = xResponseSchema.extend({...})`.
 - Spec: valid input, trimming, each rejection **asserting the key literal**
   (`.toBe('validation.title.required')`), and a response parse that rejects `Date` timestamps.
 
@@ -53,7 +63,10 @@ Check: `pnpm test --project shared`.
 Reference: `apps/api/src/milestones/*`, `test/milestones.e2e-spec.ts`.
 
 1. **Table** in `src/database/schema.ts` (Drizzle), with `date(..., { mode: 'string' })` for
-   calendar dates and `mysqlEnum('col', X_KINDS)` (tuple imported from shared) for enums. Then run
+   calendar dates and `mysqlEnum('col', X_KINDS)` (tuple imported from shared) for enums. Foreign
+   keys use `fkId(name)` (bigint unsigned, like `serial`), `(): AnyMySqlColumn => x.id` for a
+   self-reference; a join table gets `primaryKey({ columns })`, an index on the reverse column
+   and `onDelete: 'cascade'` (reference: `milestoneFamilyMembers`). Then run
    `pnpm --filter api db:generate --name <snake_case_description>`, review the SQL, apply it with
    `pnpm --filter api db:migrate`, and commit the SQL together with `drizzle/meta`. Always pass
    `--name`.
@@ -62,6 +75,15 @@ Reference: `apps/api/src/milestones/*`, `test/milestones.e2e-spec.ts`.
    (`common/not-found.error.ts`), never a Nest HTTP exception; the global
    `NotFoundErrorFilter` turns it into a 404 whose `message` the web displays. `remove`
    returns the affected-row count and never throws: delete is idempotent (always 204).
+   - Checks that need the database (a referenced id exists, not one's own parent, a PATCHed
+     value against the stored one) throw `FieldValidationError({ field: messages.key })`; its
+     global filter answers the same 400 body as the pipe. Merge a PATCH onto the stored row
+     before checking (`undefined` keeps, `null` clears) and reuse the shared rule's check.
+   - Relations: destructure relation keys out of the request (`const { xIds, ...columns }`),
+     write in `db.transaction`, lock the owner `FOR UPDATE` and then the referenced rows
+     `FOR SHARE`, skip `set()` when no column came, and replace the join rows (delete, then
+     insert unless empty). Attach embedded relations with one batched `inArray` query and add
+     them to the one growing row type (`MilestoneRow`). Reuse `xSummaryColumns`/`toXSummary`.
 3. **Mapper** (`<x>.mapper.ts`): `toXResponse(row): XResponse`, listing every field
    explicitly and converting `Date` with `.toISOString()`. Don't use `...row`: explicit fields
    are what make a new column opt-in and a new contract field a compile error.
@@ -95,6 +117,9 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
      keys that start with `'<feature>'`.
    - Mutation hooks (`useCreateX`, `useUpdateX`, `useDeleteX`) whose `onSuccess` **returns**
      the `invalidateQueries` promise, so the mutation stays pending until the cache is fresh.
+   - When another feature's responses embed these rows (or the other way round), invalidate
+     that feature's whole prefix too (`familyMembersKey`, `['milestones']`), with
+     `Promise.all`. Import query keys one way only.
    - Update: `setQueryData` on the detail key. Delete: `removeQueries` on the detail key.
    - Hooks own the cache, and pages own navigation (`await mutateAsync(...)`, then
      `navigate`).
@@ -108,13 +133,19 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
      `zodResolver(s, { error: fallbackErrorMap })`, where `s` is the shared `createXRequestSchema`.
      `.extend()` it only where an input can't hold the wire value, building the replacement from the
      shared piece so its checks survive: `description: descriptionSchema.transform(blank → null)`,
-     an enum `<select>` as `z.union([z.literal(''), xKindSchema]).transform('' → null)`.
+     an enum `<select>` as `z.union([z.literal(''), xKindSchema]).transform('' → null)`, an
+     optional date as `z.string().transform('' → null).pipe(isoDateSchema.nullable())`, an id
+     `<select>` as `z.string().transform('' → null, else Number).pipe(idSchema.nullable())`.
+     With cross-field rules: `xFieldsSchema.extend({...}).refine(...sharedRule)`.
    - Wrap submits in `try/catch` → `applyApiErrors(error, form.setError)`, which puts 400
      `fieldErrors` on fields and anything else in `errors.root.server` (keys or raw text).
    - Use shadcn `Field`/`FieldLabel` and `FieldErrorMessage` (`~/components/field-error-message`,
      translates the key) inside `Controller`; render the root error through
      `useTranslateMessage()`. Dates use a native `<input type="date">`, which already gives
-     `YYYY-MM-DD`. Pickers are native `<select>`s. Markdown fields use `MarkdownEditor`.
+     `YYYY-MM-DD`. One-of pickers are shadcn `NativeSelect`/`NativeSelectOption`
+     (`~/components/ui/native-select`, `className="w-full"` since it wraps in a `w-fit` div) or native
+     radios in a `FieldSet`; several rows use a checkbox list like `FamilyMemberPicker`, in a
+     `FieldSet` whose legend names it. Markdown fields use `MarkdownEditor` with `markdown.hint`.
 5. **List, detail and other components**:
    - Give repeated buttons distinct accessible names
      (`aria-label={t('<feature>.deleteLabel', { title: x.title })}`). Screen readers and tests
@@ -130,7 +161,8 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
 6. **Routes** (`src/routes/<feature>/index.tsx`, `new.tsx`, `$xId/route.tsx`,
    `$xId/index.tsx`, `$xId/edit.tsx`; reference `routes/milestones/$milestoneId/*`):
    - Keep route files thin. Loader: `await context.queryClient.query(xQueries.detail(id))`,
-     not the deprecated `ensureQueryData`. Component: `useSuspenseQuery`.
+     not the deprecated `ensureQueryData`. Component: `useSuspenseQuery`. A form that picks
+     other rows gets them from its route's own loader (`familyMemberQueries.list()`), as a prop.
    - The **layout `$xId/route.tsx`** owns the id: `params.parse` via `toPositiveInt`
      (`~/lib/route-params`) returns `false` for anything else, so the route falls through to
      not-found without an api call; the detail loader turns an `ApiError` 404 into
@@ -162,7 +194,11 @@ Reference: `features/milestones/milestone-list.spec.tsx`, `milestone-form.spec.t
   the test relies on with `server.use(http.get(apiUrl('/<feature>'), () =>
   HttpResponse.json([...])))`. Capture request bodies in the handler to assert what was sent.
 - Build fixtures by parsing with `xResponseSchema` (like `buildMilestone` in
-  `src/test/fixtures.ts`). Add a `buildX` there.
+  `src/test/fixtures.ts`). Add a `buildX` there, and a `buildXDetail` when there is a detail
+  schema (`buildFamilyMemberDetail`).
+- A route that loads picker options calls their api in **every** test: install the handler in a
+  `beforeEach` (see `milestone-form.spec`), and start a "no api call" test with
+  `server.resetHandlers()`.
 - Specs read in English (`setup.ts` resets to EN before each test). Where locale formatting,
   plurals or a translated label matter, add a Polish case: `await setLanguage('pl')` **before**
   `renderRoute`.
@@ -222,6 +258,19 @@ which also type-checks specs through `tsconfig.test.json`).
   `.extend()` throws when it overwrites a key of one. Export an unrefined `xFieldsSchema` plus the
   refinement and build create/update/form schemas from it. Re-`.extend()`ing a field with a bare
   `z.string()` drops its shared checks: build it from the shared piece.
+- **Relations**:
+  - An FK column of any type but bigint unsigned fails against `serial` (MySQL error 3780). A
+    self-reference without `(): AnyMySqlColumn =>` is an implicit-any type error.
+  - Drizzle throws on `update().set({})` ("No values to set", a PATCH of relation keys only) and
+    on `insert().values([])` (clearing a set). Guard both.
+  - Relation keys left in `values()`/`set()` are silently ignored: destructure them out.
+  - `.default([])` on an optional relation array clears it on every PATCH that omits it.
+  - Shared modules importing each other (e.g. `milestones.ts` ↔ `family-members.ts`) hit the TDZ
+    at load ("Cannot access … before initialization"): embedded summaries go in `summaries.ts`.
+  - Radix Checkbox/RadioGroup inside a form render a bubble input that needs ResizeObserver,
+    which jsdom lacks: use native inputs.
+  - Extra text inside a checkbox's `<label>` (a kind hint) joins its accessible name; mark it
+    `aria-hidden` so `getByRole('checkbox', { name })` and screen readers get the name only.
 - **i18n**:
   - Every `zodResolver` gets `{ error: fallbackErrorMap }`, or zod's English defaults reach the UI.
   - `t` on a string that may not be a key: `useTranslateMessage()` (`defaultValue` fallback),
@@ -235,6 +284,8 @@ which also type-checks specs through `tsconfig.test.json`).
   - An empty value renders blank (`returnEmptyString`); `resources.spec` rejects it.
   - An enum slug ending in `_one`, `_few`, `_many`, `_other`, `_two` or `_zero` would be read as
     a plural form.
+  - `{{count}}` in a key without plural forms (`'Selected: {{count}}'`) is fine: i18next falls
+    back to the base key when no `_one`/`_other` exists.
   - Don't call `i18n.changeLanguage` while a tree is mounted outside `act`; in specs switch
     through the UI (`user.selectOptions`) or before rendering.
 - **Web build order** is `vite build && tsc -b`, because the router plugin must write

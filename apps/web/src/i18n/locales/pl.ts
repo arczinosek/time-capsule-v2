@@ -13,6 +13,7 @@ type Translation<Source, Forms extends PluralSuffix> = Record<
 export const pl = {
   'app.name': 'Kapsuła czasu',
   'language.label': 'Język',
+  'nav.familyMembers': 'Rodzina',
 
   // --- common ---
   'common.cancel': 'Anuluj',
@@ -40,6 +41,14 @@ export const pl = {
   'validation.title.tooLong': 'Tytuł może mieć najwyżej 255 znaków',
   'validation.description.tooLong': 'Opis jest za długi (maks. 64 KB tekstu)',
   'validation.category.invalid': 'Wybierz kategorię z listy',
+  'validation.name.required': 'Imię jest wymagane',
+  'validation.name.tooLong': 'Imię może mieć najwyżej 255 znaków',
+  'validation.familyMemberKind.invalid': 'Wybierz: człowiek czy zwierzę',
+  'validation.deathDate.beforeBirth':
+    'Data śmierci nie może być wcześniejsza niż data urodzenia',
+  'validation.parents.same': 'Matka i ojciec muszą być różnymi członkami rodziny',
+  'validation.parent.self': 'Członek rodziny nie może być swoim własnym rodzicem',
+  'validation.familyMember.notFound': 'Wybrany członek rodziny już nie istnieje',
 
   // --- categories (slugs from @time-capsule/shared MILESTONE_CATEGORIES) ---
   'category.life_and_memory': 'Życie i wspomnienia',
@@ -50,10 +59,16 @@ export const pl = {
   'category.holidays_and_celebrations': 'Święta i uroczystości',
   'category.stories_and_anecdotes': 'Historie i anegdoty',
 
+  // --- family member kinds (slugs from @time-capsule/shared FAMILY_MEMBER_KINDS) ---
+  'familyMemberKind.human': 'Człowiek',
+  'familyMemberKind.animal': 'Zwierzę',
+
   // --- markdown ---
   'markdown.write': 'Pisz',
   'markdown.preview': 'Podgląd',
   'markdown.emptyPreview': 'Nic do podglądu.',
+  'markdown.hint':
+    'Możesz używać Markdown: **pogrubienie**, *kursywa*, # nagłówek, - lista, [link](https://…).',
 
   // --- milestones ---
   'milestones.title': 'Wydarzenia',
@@ -67,11 +82,44 @@ export const pl = {
   'milestones.deleteTitle': 'Usunąć „{{title}}”?',
   'milestones.deleteDescription': 'Tej operacji nie można cofnąć.',
   'milestones.noDescription': 'Brak opisu.',
+  'milestones.participants': 'Uczestnicy',
   'milestones.form.date': 'Data',
   'milestones.form.title': 'Tytuł',
   'milestones.form.category': 'Kategoria',
   'milestones.form.noCategory': 'Bez kategorii',
   'milestones.form.description': 'Opis',
-  'milestones.form.descriptionHint':
-    'Możesz używać Markdown: **pogrubienie**, *kursywa*, # nagłówek, - lista, [link](https://…).',
+  'milestones.form.familyMembers': 'Uczestnicy',
+
+  // --- family members ---
+  'familyMembers.title': 'Członkowie rodziny',
+  'familyMembers.new': 'Nowy członek rodziny',
+  'familyMembers.edit': 'Edytuj członka rodziny',
+  'familyMembers.empty': 'Nie ma jeszcze żadnych członków rodziny.',
+  'familyMembers.notFound': 'Nie znaleziono członka rodziny.',
+  'familyMembers.backToList': 'Wróć do członków rodziny',
+  'familyMembers.deleteLabel': 'Usuń {{name}}',
+  'familyMembers.deleteTitle': 'Usunąć {{name}}?',
+  'familyMembers.deleteDescription':
+    'Tej operacji nie można cofnąć. Zniknie z wydarzeń, a dzieci stracą tego rodzica.',
+  'familyMembers.noDescription': 'Brak opisu.',
+  'familyMembers.born': 'ur. {{date}}',
+  'familyMembers.died': 'zm. {{date}}',
+  'familyMembers.parents': 'Rodzice',
+  'familyMembers.mother': 'Matka',
+  'familyMembers.father': 'Ojciec',
+  'familyMembers.unknownMother': 'Nieznana',
+  'familyMembers.unknownFather': 'Nieznany',
+  'familyMembers.children': 'Dzieci',
+  'familyMembers.noChildren': 'Brak.',
+  'familyMembers.milestones': 'Wydarzenia',
+  'familyMembers.noMilestones': 'Nie bierze jeszcze udziału w żadnym wydarzeniu.',
+  'familyMembers.form.name': 'Imię',
+  'familyMembers.form.kind': 'Rodzaj',
+  'familyMembers.form.birthDate': 'Data urodzenia',
+  'familyMembers.form.deathDate': 'Data śmierci',
+  'familyMembers.form.description': 'Opis',
+  'familyMembers.picker.search': 'Szukaj członków rodziny',
+  'familyMembers.picker.selected': 'Wybrano: {{count}}',
+  'familyMembers.picker.noMatches': 'Nikt nie pasuje do wyszukiwania.',
+  'familyMembers.picker.add': 'Dodaj członka rodziny',
 } as const satisfies Translation<typeof en, 'one' | 'few' | 'many' | 'other'>;

@@ -15,6 +15,13 @@
       "when": 1791133137833,
       "tag": "0001_add_milestone_category",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1791134574023,
+      "tag": "0002_add_family_members",
+      "breakpoints": true
     }
   ]
 }
