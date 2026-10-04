@@ -1,13 +1,31 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import type {
+  FamilyMemberResponse,
   MilestoneResponse,
   ValidationErrorBody,
 } from '@time-capsule/shared';
 import { http, HttpResponse } from 'msw';
+import { familyMemberQueries } from '~/features/family-members/queries';
 import { setLanguage } from '~/i18n';
-import { buildMilestone } from '~/test/fixtures';
+import {
+  buildFamilyMember,
+  buildFamilyMemberDetail,
+  buildMilestone,
+} from '~/test/fixtures';
 import { renderRoute } from '~/test/render-route';
 import { apiUrl, server } from '~/test/server';
+
+/** GET /family-members: the participant options both form routes load. */
+function useFamilyMembersHandler(familyMembers: FamilyMemberResponse[]) {
+  server.use(
+    http.get(apiUrl('/family-members'), () => HttpResponse.json(familyMembers)),
+  );
+}
+
+// Every test renders a form route, whose loader fetches the participant options.
+beforeEach(() => {
+  useFamilyMembersHandler([]);
+});
 
 /** POST /milestones answering `created`, recording each body; GET of the new detail page. */
 function useCreateHandlers(created: MilestoneResponse) {
@@ -94,6 +112,7 @@ describe('/milestones/new (new milestone)', () => {
         title: 'First steps',
         description: null,
         category: null,
+        familyMemberIds: [],
       },
     ]);
   });
@@ -121,6 +140,7 @@ describe('/milestones/new (new milestone)', () => {
         title: 'Seaside',
         description: 'We saw **the sea**, see [photos](https://example.com).',
         category: 'travels_and_adventures',
+        familyMemberIds: [],
       },
     ]);
   });
@@ -239,6 +259,7 @@ describe('/milestones/$milestoneId/edit (edit milestone)', () => {
         title: 'First wobbly steps',
         description: null,
         category: null,
+        familyMemberIds: [],
       },
     ]);
   });
@@ -297,8 +318,176 @@ describe('/milestones/$milestoneId/edit (edit milestone)', () => {
   });
 
   it('shows the not-found page for a malformed id without calling the api', async () => {
-    renderRoute('/milestones/abc/edit'); // no handlers: any request would error
+    server.resetHandlers(); // no handlers: any request would error
+    renderRoute('/milestones/abc/edit');
 
     expect(await screen.findByText('Page not found.')).toBeInTheDocument();
+  });
+});
+
+describe('cross-feature cache', () => {
+  // Family member pages list the milestones they take part in.
+  const familyMemberKey = familyMemberQueries.detail(1).queryKey;
+
+  it('marks cached family members stale on create', async () => {
+    const created = buildMilestone({ title: 'Seaside' });
+    useCreateHandlers(created);
+    const { user, queryClient } = renderRoute('/milestones/new');
+    queryClient.setQueryData(familyMemberKey, buildFamilyMemberDetail({ id: 1 }));
+
+    await user.type(await screen.findByLabelText('Date'), '2024-07-01');
+    await user.type(screen.getByLabelText('Title'), 'Seaside');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await screen.findByRole('heading', { level: 1, name: 'Seaside' });
+    expect(queryClient.getQueryState(familyMemberKey)?.isInvalidated).toBe(
+      true,
+    );
+  });
+
+  it('marks cached family members stale on save', async () => {
+    useEditHandlers(buildMilestone({ id: 7, title: 'First steps' }));
+    const { user, queryClient } = renderRoute('/milestones/7/edit');
+    queryClient.setQueryData(familyMemberKey, buildFamilyMemberDetail({ id: 1 }));
+
+    await user.click(await screen.findByRole('button', { name: 'Save' }));
+
+    await screen.findByRole('heading', { level: 1, name: 'First steps' });
+    expect(queryClient.getQueryState(familyMemberKey)?.isInvalidated).toBe(
+      true,
+    );
+  });
+});
+
+describe('participants (family member picker)', () => {
+  const ada = buildFamilyMember({ id: 1, name: 'Ada' });
+  const burek = buildFamilyMember({ id: 2, name: 'Burek', kind: 'animal' });
+  const jan = buildFamilyMember({ id: 3, name: 'Jan' });
+
+  it('sends the ticked family members', async () => {
+    useFamilyMembersHandler([ada, burek, jan]);
+    const created = buildMilestone({ title: 'Walk', familyMembers: [ada, burek] });
+    const requests = useCreateHandlers(created);
+    const { user } = renderRoute('/milestones/new');
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Burek' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Ada' }));
+    expect(screen.getByText('Selected: 2')).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Date'), '2024-05-01');
+    await user.type(screen.getByLabelText('Title'), 'Walk');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await screen.findByRole('heading', { level: 1, name: 'Walk' });
+    expect(requests).toEqual([
+      expect.objectContaining({ familyMemberIds: [2, 1] }),
+    ]);
+  });
+
+  it('pre-selects the participants on edit and sends the reduced set', async () => {
+    useFamilyMembersHandler([ada, burek, jan]);
+    const milestone = buildMilestone({ id: 7, familyMembers: [ada, jan] });
+    const requests = useEditHandlers(milestone);
+    const { user } = renderRoute('/milestones/7/edit');
+
+    const adaBox = await screen.findByRole('checkbox', { name: 'Ada' });
+    expect(adaBox).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Jan' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Burek' })).not.toBeChecked();
+
+    await user.click(adaBox);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(requests).toEqual([
+        expect.objectContaining({ familyMemberIds: [3] }),
+      ]),
+    );
+  });
+
+  it('filters the rows and keeps hidden ones selected; Enter does not submit', async () => {
+    useFamilyMembersHandler([ada, burek, jan]);
+    const createHandler = vi.fn(() =>
+      HttpResponse.json(buildMilestone(), { status: 201 }),
+    );
+    server.use(http.post(apiUrl('/milestones'), createHandler));
+    const { user } = renderRoute('/milestones/new');
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Ada' }));
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search family members' }),
+      'bu{Enter}',
+    );
+
+    expect(screen.getByRole('checkbox', { name: 'Burek' })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Ada' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Jan' })).not.toBeInTheDocument();
+    expect(screen.getByText('Selected: 1')).toBeInTheDocument();
+    // Enter submitted nothing, so no validation errors either.
+    expect(screen.queryByText('Title is required')).not.toBeInTheDocument();
+    expect(createHandler).not.toHaveBeenCalled();
+
+    await user.clear(screen.getByRole('searchbox', { name: 'Search family members' }));
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Search family members' }),
+      'zz',
+    );
+    expect(screen.getByText('No family member matches.')).toBeInTheDocument();
+  });
+
+  it("shows the api's error on the participants", async () => {
+    useFamilyMembersHandler([ada]);
+    server.use(
+      http.post(apiUrl('/milestones'), () =>
+        HttpResponse.json<ValidationErrorBody>(
+          {
+            message: 'validation.failed',
+            errors: {
+              formErrors: [],
+              fieldErrors: {
+                familyMemberIds: ['validation.familyMember.notFound'],
+              },
+            },
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+    const { user } = renderRoute('/milestones/new');
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Ada' }));
+    await user.type(screen.getByLabelText('Date'), '2024-05-01');
+    await user.type(screen.getByLabelText('Title'), 'Walk');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    const fieldset = screen.getByRole('group', { name: 'Participants' });
+    expect(
+      await within(fieldset).findByText(
+        'The chosen family member no longer exists',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('links to adding a family member when there are none', async () => {
+    renderRoute('/milestones/new');
+
+    expect(
+      await screen.findByText(/No family members yet\./),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Add a family member' }),
+    ).toHaveAttribute('href', '/family-members/new');
+  });
+
+  it('counts the selection in Polish', async () => {
+    useFamilyMembersHandler([ada, burek]);
+    await setLanguage('pl');
+    const { user } = renderRoute('/milestones/new');
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Ada' }));
+
+    expect(screen.getByText('Wybrano: 1')).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'Uczestnicy' }),
+    ).toBeInTheDocument();
   });
 });

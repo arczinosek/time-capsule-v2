@@ -16,7 +16,16 @@ function RootLayout() {
         <Link to="/milestones" className="text-2xl font-semibold tracking-tight">
           {t('app.name')}
         </Link>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-4">
+          {/* Temporary: the chronicle navigation replaces it. */}
+          <Link
+            to="/family-members"
+            className="text-sm font-medium underline-offset-4 hover:underline"
+          >
+            {t('nav.familyMembers')}
+          </Link>
+          <LanguageSwitcher />
+        </div>
       </header>
       <main>
         <Outlet />

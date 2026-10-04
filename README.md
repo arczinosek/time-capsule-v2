@@ -2,7 +2,7 @@
 
 A family chronicle. Record the events of family life (births, first steps, weddings, trips) and browse them later as a timeline. Each event has a date, a title, a longer description and any number of attachments (photos, videos or other files).
 
-The project is at an early stage. Milestones work end to end: the API has CRUD for them, the web app lists, adds, edits and deletes them and shows each one on its own page, and a shared package holds the contract between the two. A milestone has an optional category from a fixed list and a description written in Markdown (with a Write/Preview editor). The web app speaks English and Polish: it follows the browser's language on the first visit, and the switcher in the header remembers the choice. Milestones is the reference implementation for new features.
+The project is at an early stage. Milestones work end to end: the API has CRUD for them, the web app lists, adds, edits and deletes them and shows each one on its own page, and a shared package holds the contract between the two. A milestone has an optional category from a fixed list and a description written in Markdown (with a Write/Preview editor). Family members (humans and pets) work end to end as well: each has optional birth and death dates, a mother and a father from the family, and a Markdown description, and a milestone can list the family members who took part in it. The web app speaks English and Polish: it follows the browser's language on the first visit, and the switcher in the header remembers the choice. Milestones is the reference implementation for new features.
 
 ## Structure
 

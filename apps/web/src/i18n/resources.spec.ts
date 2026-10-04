@@ -1,4 +1,8 @@
-import { MILESTONE_CATEGORIES, messages } from '@time-capsule/shared';
+import {
+  FAMILY_MEMBER_KINDS,
+  MILESTONE_CATEGORIES,
+  messages,
+} from '@time-capsule/shared';
 import { en } from './locales/en';
 import { pl } from './locales/pl';
 
@@ -58,11 +62,12 @@ describe('locale resources', () => {
 
   // Repeats the compile-time check at runtime: these keys arrive from the api as data.
   it.each(Object.entries(locales))(
-    '%s has text for every contract message and category',
+    '%s has text for every contract message and enum slug',
     (_language, resources) => {
       const expectedKeys = [
         ...Object.values(messages),
         ...MILESTONE_CATEGORIES.map((category) => `category.${category}`),
+        ...FAMILY_MEMBER_KINDS.map((kind) => `familyMemberKind.${kind}`),
       ];
 
       for (const key of expectedKeys) {

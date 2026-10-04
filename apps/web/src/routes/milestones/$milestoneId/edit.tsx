@@ -2,6 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '~/components/ui/card';
+import { familyMemberQueries } from '~/features/family-members/queries';
 import {
   MilestoneForm,
   toMilestoneFormValues,
@@ -11,8 +12,12 @@ import {
   useUpdateMilestone,
 } from '~/features/milestones/queries';
 
-// The loader, params and not-found page live in ./route.tsx.
+// The detail loader, params and not-found page live in ./route.tsx.
 export const Route = createFileRoute('/milestones/$milestoneId/edit')({
+  // The participant options.
+  loader: async ({ context }) => {
+    await context.queryClient.query(familyMemberQueries.list());
+  },
   component: EditMilestonePage,
 });
 
@@ -21,6 +26,7 @@ function EditMilestonePage() {
   const { data: milestone } = useSuspenseQuery(
     milestoneQueries.detail(milestoneId),
   );
+  const { data: familyMembers } = useSuspenseQuery(familyMemberQueries.list());
   const update = useUpdateMilestone();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -33,6 +39,7 @@ function EditMilestonePage() {
             // The router reuses this component across ids and RHF reads defaultValues once.
             key={milestone.id}
             defaultValues={toMilestoneFormValues(milestone)}
+            familyMembers={familyMembers}
             submitLabel={t('common.save')}
             milestoneId={milestone.id}
             onSubmit={async (values) => {

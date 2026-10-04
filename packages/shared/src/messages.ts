@@ -13,6 +13,13 @@ export const messages = {
   titleTooLong: 'validation.title.tooLong',
   descriptionTooLong: 'validation.description.tooLong',
   categoryInvalid: 'validation.category.invalid',
+  nameRequired: 'validation.name.required',
+  nameTooLong: 'validation.name.tooLong',
+  familyMemberKindInvalid: 'validation.familyMemberKind.invalid',
+  deathBeforeBirth: 'validation.deathDate.beforeBirth',
+  sameParents: 'validation.parents.same',
+  ownParent: 'validation.parent.self',
+  familyMemberNotFound: 'validation.familyMember.notFound',
 } as const;
 
 export type MessageKey = (typeof messages)[keyof typeof messages];

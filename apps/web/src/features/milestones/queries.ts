@@ -4,6 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import type { UpdateMilestoneRequest } from '@time-capsule/shared';
+import { familyMembersKey } from '~/features/family-members/queries';
 import {
   createMilestone,
   deleteMilestone,
@@ -26,16 +27,20 @@ export const milestoneQueries = {
 
 // Mutation hooks own cache updates; components own navigation (await mutateAsync, then
 // navigate). onSuccess RETURNS the invalidation promise: v5 awaits it, so the mutation stays
-// pending until the cache is up to date.
+// pending until the cache is up to date. Every write also invalidates the family members:
+// their pages list the milestones they take part in.
 
 export function useCreateMilestone() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createMilestone,
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: milestoneQueries.list().queryKey,
-      }),
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: milestoneQueries.list().queryKey,
+        }),
+        queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+      ]),
   });
 }
 
@@ -50,9 +55,12 @@ export function useUpdateMilestone() {
         milestoneQueries.detail(milestone.id).queryKey,
         milestone,
       );
-      return queryClient.invalidateQueries({
-        queryKey: milestoneQueries.list().queryKey,
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: milestoneQueries.list().queryKey,
+        }),
+        queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+      ]);
     },
   });
 }
@@ -65,9 +73,12 @@ export function useDeleteMilestone() {
       queryClient.removeQueries({
         queryKey: milestoneQueries.detail(id).queryKey,
       });
-      return queryClient.invalidateQueries({
-        queryKey: milestoneQueries.list().queryKey,
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: milestoneQueries.list().queryKey,
+        }),
+        queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+      ]);
     },
   });
 }

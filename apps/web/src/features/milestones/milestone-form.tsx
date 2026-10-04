@@ -6,6 +6,7 @@ import {
   fallbackErrorMap,
   MILESTONE_CATEGORIES,
   milestoneCategorySchema,
+  type FamilyMemberResponse,
   type MilestoneResponse,
 } from '@time-capsule/shared';
 import { Controller, useForm } from 'react-hook-form';
@@ -20,8 +21,15 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
 } from '~/components/ui/field';
 import { Input } from '~/components/ui/input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '~/components/ui/native-select';
+import { FamilyMemberPicker } from '~/features/family-members/family-member-picker';
 import { useTranslateMessage } from '~/i18n';
 import { applyApiErrors } from '~/lib/form-errors';
 
@@ -36,6 +44,9 @@ const milestoneFormSchema = createMilestoneRequestSchema.extend({
   category: z
     .union([z.literal(''), milestoneCategorySchema])
     .transform((value) => (value === '' ? null : value)),
+  // Required here (optional on the wire): the form always sends the whole set, so an edit
+  // replaces the participants.
+  familyMemberIds: createMilestoneRequestSchema.shape.familyMemberIds.unwrap(),
 });
 
 /** What the inputs hold. */
@@ -48,6 +59,7 @@ export const emptyMilestoneFormValues: MilestoneFormValues = {
   title: '',
   description: '',
   category: '',
+  familyMemberIds: [],
 };
 
 export function toMilestoneFormValues(
@@ -58,11 +70,14 @@ export function toMilestoneFormValues(
     title: milestone.title,
     description: milestone.description ?? '',
     category: milestone.category ?? '',
+    familyMemberIds: milestone.familyMembers.map(({ id }) => id),
   };
 }
 
 type MilestoneFormProps = {
   defaultValues: MilestoneFormValues;
+  /** The participant options. */
+  familyMembers: FamilyMemberResponse[];
   /** Translated text of the submit button. */
   submitLabel: string;
   /** The milestone being edited: Cancel goes back to its page instead of the list. */
@@ -71,11 +86,9 @@ type MilestoneFormProps = {
   onSubmit: (values: MilestoneFormOutput) => Promise<void>;
 };
 
-const selectClassName =
-  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30';
-
 export function MilestoneForm({
   defaultValues,
+  familyMembers,
   submitLabel,
   milestoneId,
   onSubmit,
@@ -153,22 +166,43 @@ export function MilestoneForm({
               <FieldLabel htmlFor="milestone-category">
                 {t('milestones.form.category')}
               </FieldLabel>
-              {/* Native select: works with keyboards, screen readers and mobile pickers. */}
-              <select
+              <NativeSelect
+                className="w-full"
                 {...field}
                 id="milestone-category"
-                className={selectClassName}
                 aria-invalid={fieldState.invalid}
               >
-                <option value="">{t('milestones.form.noCategory')}</option>
+                <NativeSelectOption value="">
+                  {t('milestones.form.noCategory')}
+                </NativeSelectOption>
                 {MILESTONE_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
+                  <NativeSelectOption key={category} value={category}>
                     {t(`category.${category}`)}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
               <FieldErrorMessage error={fieldState.error} />
             </Field>
+          )}
+        />
+        <Controller
+          name="familyMemberIds"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <FieldSet data-invalid={fieldState.invalid}>
+              <FieldLegend variant="label">
+                {t('milestones.form.familyMembers')}
+              </FieldLegend>
+              <FamilyMemberPicker
+                familyMembers={familyMembers}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                invalid={fieldState.invalid}
+              />
+              <FieldErrorMessage error={fieldState.error} />
+            </FieldSet>
           )}
         />
         <Controller
@@ -186,7 +220,7 @@ export function MilestoneForm({
                 aria-invalid={fieldState.invalid}
               />
               <FieldDescription id="milestone-description-hint">
-                {t('milestones.form.descriptionHint')}
+                {t('markdown.hint')}
               </FieldDescription>
               <FieldErrorMessage error={fieldState.error} />
             </Field>

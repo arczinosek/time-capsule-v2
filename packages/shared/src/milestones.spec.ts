@@ -3,6 +3,7 @@ import {
   createMilestoneRequestSchema,
   MILESTONE_CATEGORIES,
   milestoneResponseSchema,
+  milestoneSummarySchema,
   updateMilestoneRequestSchema,
 } from './milestones.js';
 
@@ -105,6 +106,29 @@ describe('milestone schemas', () => {
       );
     });
 
+    it('accepts the participants', () => {
+      expect(
+        createMilestoneRequestSchema.parse({
+          date: '2024-05-01',
+          title: 'Birth',
+          familyMemberIds: [1, 2],
+        }).familyMemberIds,
+      ).toEqual([1, 2]);
+    });
+
+    it.each([[[0]], [[1.5]], [['1']], [3]])(
+      'rejects familyMemberIds %j',
+      (familyMemberIds) => {
+        expect(
+          createMilestoneRequestSchema.safeParse({
+            date: '2024-05-01',
+            title: 'Birth',
+            familyMemberIds,
+          }).success,
+        ).toBe(false);
+      },
+    );
+
     it('reports an issue without its own key as validation.invalid with the fallback map', () => {
       const result = createMilestoneRequestSchema.safeParse(
         { date: '2024-05-01', title: 42 },
@@ -128,6 +152,18 @@ describe('milestone schemas', () => {
       });
     });
 
+    it('accepts an update of the participants only, including clearing them', () => {
+      expect(updateMilestoneRequestSchema.parse({ familyMemberIds: [] })).toEqual({
+        familyMemberIds: [],
+      });
+    });
+
+    it('leaves the participants out when they are not sent (no default clears them)', () => {
+      expect(
+        updateMilestoneRequestSchema.parse({ title: 'Renamed' }),
+      ).not.toHaveProperty('familyMemberIds');
+    });
+
     it('rejects an empty update with the at-least-one-field key', () => {
       expect(
         updateMilestoneRequestSchema.safeParse({}).error?.issues[0]?.message,
@@ -142,6 +178,7 @@ describe('milestone schemas', () => {
       title: 'First steps',
       description: null,
       category: null,
+      familyMembers: [],
       createdAt: '2024-05-01T10:00:00.000Z',
       updatedAt: '2024-05-01T10:00:00.000Z',
     };
@@ -166,6 +203,29 @@ describe('milestone schemas', () => {
       );
     });
 
+    it('accepts the participants', () => {
+      const expectedMilestone = {
+        ...milestone,
+        familyMembers: [
+          { id: 1, name: 'Ada', kind: 'human' },
+          { id: 2, name: 'Burek', kind: 'animal' },
+        ],
+      };
+
+      expect(milestoneResponseSchema.parse(expectedMilestone)).toEqual(
+        expectedMilestone,
+      );
+    });
+
+    it('requires the participants (empty when there are none)', () => {
+      const { familyMembers: _familyMembers, ...withoutFamilyMembers } =
+        milestone;
+
+      expect(
+        milestoneResponseSchema.safeParse(withoutFamilyMembers).success,
+      ).toBe(false);
+    });
+
     it('rejects Date timestamps: the wire format is ISO strings', () => {
       expect(
         milestoneResponseSchema.safeParse({
@@ -174,5 +234,20 @@ describe('milestone schemas', () => {
         }).success,
       ).toBe(false);
     });
+  });
+});
+
+describe('milestoneSummarySchema', () => {
+  it('keeps id, date, title and category', () => {
+    expect(
+      milestoneSummarySchema.parse({
+        id: 1,
+        date: '2024-05-01',
+        title: 'First steps',
+        description: 'dropped',
+        category: null,
+        familyMembers: [],
+      }),
+    ).toEqual({ id: 1, date: '2024-05-01', title: 'First steps', category: null });
   });
 });
