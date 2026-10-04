@@ -4,7 +4,22 @@ import { z } from 'zod';
 import { ZodValidationPipe } from './zod-validation.pipe.js';
 
 describe('ZodValidationPipe', () => {
-  const pipe = new ZodValidationPipe(z.object({ name: z.string().trim() }));
+  const pipe = new ZodValidationPipe(
+    z.object({
+      name: z.string().trim(),
+      title: z.string().min(1, 'validation.title.required').optional(),
+    }),
+  );
+
+  function bodyOf(value: unknown): unknown {
+    try {
+      pipe.transform(value);
+    } catch (error) {
+      expect(error).toBeInstanceOf(BadRequestException);
+      return (error as BadRequestException).getResponse();
+    }
+    throw new Error('expected the pipe to throw');
+  }
 
   it('returns the parsed value', () => {
     expect(pipe.transform({ name: ' Ada ', extra: true })).toEqual({
@@ -13,18 +28,25 @@ describe('ZodValidationPipe', () => {
   });
 
   it('throws BadRequestException with the shared validation error body', () => {
-    expect.assertions(3);
+    const body = bodyOf({ name: 42 });
 
-    try {
-      pipe.transform({ name: 42 });
-    } catch (error) {
-      expect(error).toBeInstanceOf(BadRequestException);
+    expect(validationErrorBodySchema.safeParse(body).success).toBe(true);
+    expect(body).toMatchObject({ message: 'validation.failed' });
+  });
 
-      const body = (error as BadRequestException).getResponse();
-      expect(validationErrorBodySchema.safeParse(body).success).toBe(true);
-      expect(body).toMatchObject({
-        errors: { fieldErrors: { name: expect.any(Array) } },
-      });
-    }
+  it('reports an issue without its own message as the validation.invalid key', () => {
+    const expectedFieldErrors = { name: ['validation.invalid'] };
+
+    expect(bodyOf({ name: 42 })).toMatchObject({
+      errors: { formErrors: [], fieldErrors: expectedFieldErrors },
+    });
+  });
+
+  it("keeps the schema's own key", () => {
+    const expectedFieldErrors = { title: ['validation.title.required'] };
+
+    expect(bodyOf({ name: 'Ada', title: '' })).toMatchObject({
+      errors: { fieldErrors: expectedFieldErrors },
+    });
   });
 });

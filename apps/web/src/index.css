@@ -128,3 +128,50 @@
     @apply font-sans;
     }
 }
+
+/* Rendered Markdown (~/components/markdown). Tailwind's preflight strips list bullets, heading
+   sizes and the like, so put back what user-written stories use. Built from theme tokens. */
+@layer components {
+  .chronicle-prose {
+    overflow-wrap: anywhere;
+  }
+  .chronicle-prose > * + * {
+    @apply mt-3;
+  }
+  .chronicle-prose :is(h2, h3, h4, h5, h6) {
+    @apply font-heading font-semibold leading-snug;
+  }
+  .chronicle-prose h2 {
+    @apply text-xl;
+  }
+  .chronicle-prose h3 {
+    @apply text-lg;
+  }
+  .chronicle-prose :is(h4, h5, h6) {
+    @apply text-base;
+  }
+  .chronicle-prose a {
+    @apply text-primary underline underline-offset-2;
+  }
+  .chronicle-prose ul {
+    @apply list-disc pl-6;
+  }
+  .chronicle-prose ol {
+    @apply list-decimal pl-6;
+  }
+  .chronicle-prose blockquote {
+    @apply border-l-2 pl-4 italic text-muted-foreground;
+  }
+  .chronicle-prose hr {
+    @apply border-border;
+  }
+  .chronicle-prose code {
+    @apply rounded-sm bg-muted px-1 font-mono text-[0.9em];
+  }
+  .chronicle-prose pre {
+    @apply overflow-x-auto rounded-md bg-muted p-3;
+  }
+  .chronicle-prose pre code {
+    @apply bg-transparent p-0;
+  }
+}

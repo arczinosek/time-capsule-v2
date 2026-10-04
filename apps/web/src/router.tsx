@@ -1,6 +1,10 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
-import { NotFound, RouteError, RoutePending } from '~/components/route-states';
+import {
+  PageNotFound,
+  RouteError,
+  RoutePending,
+} from '~/components/route-states';
 import { routeTree } from './routeTree.gen';
 
 // One factory for the app (browser history) and for tests (memory history).
@@ -18,7 +22,7 @@ export function createAppRouter({
     defaultPendingComponent: RoutePending,
     defaultErrorComponent: RouteError,
     // Unknown URLs, and ids rejected by a route's params.parse.
-    defaultNotFoundComponent: () => <NotFound message="Page not found." />,
+    defaultNotFoundComponent: PageNotFound,
   });
 }
 

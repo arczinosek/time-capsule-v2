@@ -20,9 +20,9 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "NODE_OPTIONS=--conditions=@time-capsule/source drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "NODE_OPTIONS=--conditions=@time-capsule/source drizzle-kit studio"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

@@ -11,7 +11,9 @@ describe('/milestones (milestones list)', () => {
         HttpResponse.json([
           buildMilestone({
             title: 'First steps',
+            date: '2024-05-01',
             description: 'Wobbly but proud.',
+            category: 'life_and_memory',
           }),
         ]),
       ),
@@ -20,8 +22,29 @@ describe('/milestones (milestones list)', () => {
     const { router } = renderRoute('/');
 
     expect(await screen.findByText('First steps')).toBeInTheDocument();
-    expect(screen.getByText('Wobbly but proud.')).toBeInTheDocument();
+    expect(await screen.findByText('Wobbly but proud.')).toBeInTheDocument();
+    expect(screen.getByText('1 May 2024')).toHaveAttribute(
+      'datetime',
+      '2024-05-01',
+    );
+    expect(screen.getByText(/Life and memory/)).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/milestones');
+  });
+
+  it('opens a milestone from its title', async () => {
+    const milestone = buildMilestone({ id: 3, title: 'First steps' });
+    server.use(
+      http.get(apiUrl('/milestones'), () => HttpResponse.json([milestone])),
+      http.get(apiUrl('/milestones/3'), () => HttpResponse.json(milestone)),
+    );
+    const { user, router } = renderRoute('/milestones');
+
+    await user.click(await screen.findByRole('link', { name: 'First steps' }));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'First steps' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/milestones/3');
   });
 
   it('deletes a milestone after confirmation', async () => {
@@ -50,9 +73,11 @@ describe('/milestones (milestones list)', () => {
 
     renderRoute('/milestones');
 
-    expect(await screen.findByText(/Cannot reach/)).toHaveTextContent(
-      'http://api.test/milestones',
-    );
+    expect(
+      await screen.findByText(
+        "Cannot reach the api. Is it running, and does its CORS_ORIGIN match this page's origin?",
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Try again' }),
     ).toBeInTheDocument();

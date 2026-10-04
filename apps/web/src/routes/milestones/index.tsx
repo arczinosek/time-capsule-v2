@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import { MilestoneList } from '~/features/milestones/milestone-list';
 import { milestoneQueries } from '~/features/milestones/queries';
@@ -16,12 +17,13 @@ export const Route = createFileRoute('/milestones/')({
 
 function MilestonesPage() {
   const { data: milestones } = useSuspenseQuery(milestoneQueries.list());
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Milestones</h1>
+        <h1 className="text-xl font-semibold">{t('milestones.title')}</h1>
         <Button asChild>
-          <Link to="/milestones/new">New milestone</Link>
+          <Link to="/milestones/new">{t('milestones.new')}</Link>
         </Button>
       </div>
       <MilestoneList milestones={milestones} />

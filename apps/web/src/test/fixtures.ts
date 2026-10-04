@@ -14,6 +14,7 @@ export function buildMilestone(
     date: '2024-05-01',
     title: 'First steps',
     description: null,
+    category: null,
     createdAt: '2024-05-01T10:00:00.000Z',
     updatedAt: '2024-05-01T10:00:00.000Z',
     ...overrides,

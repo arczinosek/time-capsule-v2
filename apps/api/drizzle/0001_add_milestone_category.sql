@@ -1,0 +1,1 @@
+ALTER TABLE `milestones` ADD `category` enum('life_and_memory','relationships_and_marriage','education_and_career','home_and_places','travels_and_adventures','holidays_and_celebrations','stories_and_anecdotes');
