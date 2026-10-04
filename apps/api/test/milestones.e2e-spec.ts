@@ -4,6 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import {
   familyMemberDetailResponseSchema,
+  locationResponseSchema,
   milestoneResponseSchema,
   validationErrorBodySchema,
 } from '@time-capsule/shared';
@@ -433,6 +434,125 @@ describe('MilestonesController (e2e)', () => {
       expect(
         validationErrorBodySchema.parse(res.body).errors.fieldErrors,
       ).toEqual({ familyMemberIds: ['validation.invalid'] });
+    });
+  });
+
+  describe('order and location', () => {
+    const unique = (name: string) =>
+      `${name} ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const milestoneIds: number[] = [];
+    const locationIds: number[] = [];
+
+    afterAll(async () => {
+      const server = app.getHttpServer();
+      for (const id of milestoneIds) {
+        await request(server).delete(`/milestones/${id}`);
+      }
+      for (const id of locationIds) {
+        await request(server).delete(`/locations/${id}`);
+      }
+    });
+
+    async function createMilestone(body: object) {
+      const res = await request(app.getHttpServer())
+        .post('/milestones')
+        .send({ date: '2024-06-01', title: unique('Walk'), ...body })
+        .expect(201);
+      const milestone = milestoneResponseSchema.parse(res.body);
+      milestoneIds.push(milestone.id);
+      return milestone;
+    }
+
+    it('lists newest first, and the later-created first on the same date', async () => {
+      const older = await createMilestone({ date: '1901-01-01' });
+      const first = await createMilestone({ date: '1901-01-02' });
+      const second = await createMilestone({ date: '1901-01-02' });
+      const expectedOrder = [second.id, first.id, older.id];
+
+      const res = await request(app.getHttpServer())
+        .get('/milestones')
+        .expect(200);
+
+      expect(
+        milestoneResponseSchema
+          .array()
+          .parse(res.body)
+          .map(({ id }) => id)
+          .filter((id) => expectedOrder.includes(id)),
+      ).toEqual(expectedOrder);
+    });
+
+    it('stores, changes and clears the location; no place without one', async () => {
+      const server = app.getHttpServer();
+      const locationRes = await request(server)
+        .post('/locations')
+        .send({ name: unique('Park'), latitude: 52.2297, longitude: 21.0122 })
+        .expect(201);
+      const { id, name, latitude, longitude } = locationResponseSchema.parse(
+        locationRes.body,
+      );
+      locationIds.push(id);
+      const expectedLocation = { id, name, latitude, longitude };
+
+      const milestone = await createMilestone({ locationId: id });
+      expect(milestone).toMatchObject({
+        location: expectedLocation,
+        place: null,
+      });
+
+      // A PATCH without the key keeps it.
+      await request(server)
+        .patch(`/milestones/${milestone.id}`)
+        .send({ title: unique('Renamed') })
+        .expect(200)
+        .expect((res) =>
+          expect(milestoneResponseSchema.parse(res.body).location).toEqual(
+            expectedLocation,
+          ),
+        );
+
+      await request(server)
+        .patch(`/milestones/${milestone.id}`)
+        .send({ locationId: null })
+        .expect(200)
+        .expect((res) =>
+          expect(milestoneResponseSchema.parse(res.body)).toMatchObject({
+            location: null,
+            place: null,
+          }),
+        );
+    });
+
+    it('rejects an unknown location on locationId and writes nothing', async () => {
+      const server = app.getHttpServer();
+      const milestone = await createMilestone({});
+      const expectedFieldErrors = {
+        locationId: ['validation.location.notFound'],
+      };
+
+      const created = await request(server)
+        .post('/milestones')
+        .send({ date: '2024-06-01', title: 'Lost', locationId: 999_999_999 })
+        .expect(400);
+      expect(
+        validationErrorBodySchema.parse(created.body).errors.fieldErrors,
+      ).toEqual(expectedFieldErrors);
+
+      const patched = await request(server)
+        .patch(`/milestones/${milestone.id}`)
+        .send({ title: 'Renamed', locationId: 999_999_999 })
+        .expect(400);
+      expect(
+        validationErrorBodySchema.parse(patched.body).errors.fieldErrors,
+      ).toEqual(expectedFieldErrors);
+      await request(server)
+        .get(`/milestones/${milestone.id}`)
+        .expect(200)
+        .expect((res) =>
+          expect(milestoneResponseSchema.parse(res.body).title).toBe(
+            milestone.title,
+          ),
+        );
     });
   });
 });

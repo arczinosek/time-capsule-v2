@@ -1,8 +1,13 @@
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { familyMemberQueries } from '~/features/family-members/queries';
+import { placeQueries } from '~/features/places/queries';
 import { setLanguage } from '~/i18n';
-import { buildFamilyMemberDetail, buildMilestone } from '~/test/fixtures';
+import {
+  buildFamilyMemberDetail,
+  buildMilestone,
+  buildPlaceDetail,
+} from '~/test/fixtures';
 import { renderRoute } from '~/test/render-route';
 import { apiUrl, server } from '~/test/server';
 
@@ -104,6 +109,82 @@ describe('/milestones/$milestoneId (milestone page)', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('shows where it happened: the derived place, the location and a map', async () => {
+    server.use(
+      http.get(apiUrl('/milestones/7'), () =>
+        HttpResponse.json(
+          buildMilestone({
+            id: 7,
+            location: {
+              id: 3,
+              name: 'Garden',
+              latitude: 50.061698,
+              longitude: 19.937206,
+            },
+            place: { id: 5, name: 'Home' },
+          }),
+        ),
+      ),
+    );
+
+    renderRoute('/milestones/7');
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Where' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute(
+      'href',
+      '/places/5',
+    );
+    expect(screen.getByText('Garden')).toBeInTheDocument();
+    expect(screen.getByText(/50\.061698°, 19\.937206°/)).toBeInTheDocument();
+    // The map chunk loads lazily.
+    expect(
+      await within(
+        screen.getByRole('group', { name: 'Map of Garden' }),
+      ).findByTestId('location-preview-map'),
+    ).toHaveAttribute('data-point', '50.061698,19.937206');
+  });
+
+  it('shows a location without a place, in Polish, and nothing without a location', async () => {
+    server.use(
+      http.get(apiUrl('/milestones/7'), () =>
+        HttpResponse.json(
+          buildMilestone({
+            id: 7,
+            location: { id: 3, name: 'Ogród', latitude: 50.5, longitude: -19.25 },
+          }),
+        ),
+      ),
+      http.get(apiUrl('/milestones/8'), () =>
+        HttpResponse.json(buildMilestone({ id: 8, title: 'Quiet day' })),
+      ),
+    );
+    await setLanguage('pl');
+    const { router } = renderRoute('/milestones/7');
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Gdzie' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/50,5°; -19,25°/)).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Mapa: Ogród' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Otwórz w OpenStreetMap' }),
+    ).toBeInTheDocument();
+
+    await router.navigate({
+      to: '/milestones/$milestoneId',
+      params: { milestoneId: 8 },
+    });
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Quiet day' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Gdzie' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('says when there is no description', async () => {
     server.use(
       http.get(apiUrl('/milestones/7'), () =>
@@ -156,7 +237,7 @@ describe('/milestones/$milestoneId (milestone page)', () => {
     expect(getHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('marks cached family members stale on delete (their pages list milestones)', async () => {
+  it('marks cached family members and places stale on delete (their pages list milestones)', async () => {
     server.use(
       http.get(apiUrl('/milestones/7'), () =>
         HttpResponse.json(buildMilestone({ id: 7, title: 'First steps' })),
@@ -169,7 +250,9 @@ describe('/milestones/$milestoneId (milestone page)', () => {
     );
     const { user, queryClient } = renderRoute('/milestones/7');
     const familyMemberKey = familyMemberQueries.detail(1).queryKey;
+    const placeKey = placeQueries.detail(2).queryKey;
     queryClient.setQueryData(familyMemberKey, buildFamilyMemberDetail({ id: 1 }));
+    queryClient.setQueryData(placeKey, buildPlaceDetail({ id: 2 }));
 
     await user.click(
       await screen.findByRole('button', { name: 'Delete First steps' }),
@@ -181,6 +264,7 @@ describe('/milestones/$milestoneId (milestone page)', () => {
     expect(queryClient.getQueryState(familyMemberKey)?.isInvalidated).toBe(
       true,
     );
+    expect(queryClient.getQueryState(placeKey)?.isInvalidated).toBe(true);
   });
 
   it('shows not found when the api answers 404', async () => {

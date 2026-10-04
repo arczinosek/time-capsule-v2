@@ -8,14 +8,18 @@ import { NotFoundErrorFilter } from './common/not-found-error.filter.js';
 import { validateEnv } from './config/env.js';
 import { DatabaseModule } from './database/database.module.js';
 import { FamilyMembersModule } from './family-members/family-members.module.js';
+import { LocationsModule } from './locations/locations.module.js';
 import { MilestonesModule } from './milestones/milestones.module.js';
+import { PlacesModule } from './places/places.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     DatabaseModule,
     FamilyMembersModule,
+    LocationsModule,
     MilestonesModule,
+    PlacesModule,
   ],
   controllers: [AppController],
   providers: [

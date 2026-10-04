@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { descriptionSchema, idSchema, isoDateSchema } from './common.js';
 import { messages } from './messages.js';
-import { familyMemberSummarySchema } from './summaries.js';
+import {
+  familyMemberSummarySchema,
+  locationSummarySchema,
+  placeSummarySchema,
+} from './summaries.js';
 
 // Wire slugs (also the MySQL enum values, see apps/api/src/database/schema.ts). The web shows
 // them through the `category.<slug>` i18n keys. Changing this list needs a migration.
@@ -33,6 +37,8 @@ export const createMilestoneRequestSchema = z.object({
   // The participants. Replaces the whole set when present; absent leaves it unchanged. Not
   // .default([]): through .partial() that would clear the participants on every PATCH.
   familyMemberIds: z.array(idSchema).optional(),
+  // Where it happened. The place is not stored: it is the place that owns this location.
+  locationId: idSchema.nullish(),
 });
 
 export const updateMilestoneRequestSchema = createMilestoneRequestSchema
@@ -49,6 +55,9 @@ export const milestoneResponseSchema = z.object({
   category: milestoneCategorySchema.nullable(),
   /** Sorted by name. */
   familyMembers: z.array(familyMemberSummarySchema),
+  location: locationSummarySchema.nullable(),
+  /** Derived: the place that owns `location`, if any. */
+  place: placeSummarySchema.nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

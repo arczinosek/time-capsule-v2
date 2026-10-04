@@ -1,16 +1,22 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import type {
   FamilyMemberResponse,
+  LocationResponse,
   MilestoneResponse,
+  PlaceResponse,
   ValidationErrorBody,
 } from '@time-capsule/shared';
 import { http, HttpResponse } from 'msw';
 import { familyMemberQueries } from '~/features/family-members/queries';
+import { placeQueries } from '~/features/places/queries';
 import { setLanguage } from '~/i18n';
 import {
   buildFamilyMember,
   buildFamilyMemberDetail,
+  buildLocation,
   buildMilestone,
+  buildPlace,
+  buildPlaceDetail,
 } from '~/test/fixtures';
 import { renderRoute } from '~/test/render-route';
 import { apiUrl, server } from '~/test/server';
@@ -22,9 +28,18 @@ function useFamilyMembersHandler(familyMembers: FamilyMemberResponse[]) {
   );
 }
 
-// Every test renders a form route, whose loader fetches the participant options.
+/** GET /places and GET /locations: the "where" options both form routes load. */
+function useWhereHandlers(places: PlaceResponse[], locations: LocationResponse[]) {
+  server.use(
+    http.get(apiUrl('/places'), () => HttpResponse.json(places)),
+    http.get(apiUrl('/locations'), () => HttpResponse.json(locations)),
+  );
+}
+
+// Every test renders a form route, whose loader fetches the participant and "where" options.
 beforeEach(() => {
   useFamilyMembersHandler([]);
+  useWhereHandlers([], []);
 });
 
 /** POST /milestones answering `created`, recording each body; GET of the new detail page. */
@@ -113,6 +128,7 @@ describe('/milestones/new (new milestone)', () => {
         description: null,
         category: null,
         familyMemberIds: [],
+        locationId: null,
       },
     ]);
   });
@@ -141,6 +157,7 @@ describe('/milestones/new (new milestone)', () => {
         description: 'We saw **the sea**, see [photos](https://example.com).',
         category: 'travels_and_adventures',
         familyMemberIds: [],
+        locationId: null,
       },
     ]);
   });
@@ -260,6 +277,7 @@ describe('/milestones/$milestoneId/edit (edit milestone)', () => {
         description: null,
         category: null,
         familyMemberIds: [],
+        locationId: null,
       },
     ]);
   });
@@ -326,14 +344,16 @@ describe('/milestones/$milestoneId/edit (edit milestone)', () => {
 });
 
 describe('cross-feature cache', () => {
-  // Family member pages list the milestones they take part in.
+  // Family member pages list the milestones they take part in, place pages those held there.
   const familyMemberKey = familyMemberQueries.detail(1).queryKey;
+  const placeKey = placeQueries.detail(2).queryKey;
 
-  it('marks cached family members stale on create', async () => {
+  it('marks cached family members and places stale on create', async () => {
     const created = buildMilestone({ title: 'Seaside' });
     useCreateHandlers(created);
     const { user, queryClient } = renderRoute('/milestones/new');
     queryClient.setQueryData(familyMemberKey, buildFamilyMemberDetail({ id: 1 }));
+    queryClient.setQueryData(placeKey, buildPlaceDetail({ id: 2 }));
 
     await user.type(await screen.findByLabelText('Date'), '2024-07-01');
     await user.type(screen.getByLabelText('Title'), 'Seaside');
@@ -343,12 +363,14 @@ describe('cross-feature cache', () => {
     expect(queryClient.getQueryState(familyMemberKey)?.isInvalidated).toBe(
       true,
     );
+    expect(queryClient.getQueryState(placeKey)?.isInvalidated).toBe(true);
   });
 
-  it('marks cached family members stale on save', async () => {
+  it('marks cached family members and places stale on save', async () => {
     useEditHandlers(buildMilestone({ id: 7, title: 'First steps' }));
     const { user, queryClient } = renderRoute('/milestones/7/edit');
     queryClient.setQueryData(familyMemberKey, buildFamilyMemberDetail({ id: 1 }));
+    queryClient.setQueryData(placeKey, buildPlaceDetail({ id: 2 }));
 
     await user.click(await screen.findByRole('button', { name: 'Save' }));
 
@@ -356,6 +378,7 @@ describe('cross-feature cache', () => {
     expect(queryClient.getQueryState(familyMemberKey)?.isInvalidated).toBe(
       true,
     );
+    expect(queryClient.getQueryState(placeKey)?.isInvalidated).toBe(true);
   });
 });
 
@@ -489,5 +512,99 @@ describe('participants (family member picker)', () => {
     expect(
       screen.getByRole('group', { name: 'Uczestnicy' }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('where (location select)', () => {
+  const krakow = buildLocation({ id: 11, name: 'Kraków', place: { id: 21, name: 'Home' } });
+  const lake = buildLocation({ id: 12, name: 'Lake' });
+  const home = buildPlace({
+    id: 21,
+    name: 'Home',
+    location: { id: 11, name: 'Kraków', latitude: 50.061698, longitude: 19.937206 },
+  });
+  const nowhere = buildPlace({ id: 22, name: 'Somewhere', location: null });
+
+  it('offers places that have a location and the free locations, and sends a location id', async () => {
+    useWhereHandlers([home, nowhere], [krakow, lake]);
+    const created = buildMilestone({ title: 'Dinner' });
+    const requests = useCreateHandlers(created);
+    const { user } = renderRoute('/milestones/new');
+
+    const where = await screen.findByLabelText('Where');
+    // A place without a location can't be chosen; a place's location is offered as the place.
+    expect(
+      within(where)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Not set', 'Home', 'Lake']);
+    expect(within(where).getByRole('group', { name: 'Places' })).toBeInTheDocument();
+    expect(
+      within(where).getByRole('group', { name: 'Other locations' }),
+    ).toBeInTheDocument();
+
+    await user.selectOptions(where, 'Home');
+    await user.type(screen.getByLabelText('Date'), '2024-05-01');
+    await user.type(screen.getByLabelText('Title'), 'Dinner');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await screen.findByRole('heading', { level: 1, name: 'Dinner' });
+    expect(requests).toEqual([expect.objectContaining({ locationId: 11 })]);
+  });
+
+  it('pre-selects the location on edit and clears it with the empty option', async () => {
+    useWhereHandlers([home], [krakow, lake]);
+    const milestone = buildMilestone({
+      id: 7,
+      location: { id: 12, name: 'Lake', latitude: 50.061698, longitude: 19.937206 },
+    });
+    const requests = useEditHandlers(milestone);
+    const { user } = renderRoute('/milestones/7/edit');
+
+    const where = await screen.findByLabelText('Where');
+    expect(where).toHaveValue('12');
+
+    await user.selectOptions(where, 'Not set');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(requests).toEqual([expect.objectContaining({ locationId: null })]),
+    );
+  });
+
+  it('creates a location in a dialog and selects it, without submitting the milestone', async () => {
+    const created = buildLocation({ id: 13, name: 'Wawel' });
+    let locations = [lake];
+    const locationRequests: unknown[] = [];
+    const createMilestoneHandler = vi.fn(() =>
+      HttpResponse.json(buildMilestone(), { status: 201 }),
+    );
+    server.use(
+      http.get(apiUrl('/locations'), () => HttpResponse.json(locations)),
+      http.post(apiUrl('/locations'), async ({ request }) => {
+        locationRequests.push(await request.json());
+        locations = [lake, created];
+        return HttpResponse.json(created, { status: 201 });
+      }),
+      http.post(apiUrl('/milestones'), createMilestoneHandler),
+    );
+    const { user } = renderRoute('/milestones/new');
+
+    await user.click(await screen.findByRole('button', { name: 'New location' }));
+    const dialog = await screen.findByRole('dialog', { name: 'New location' });
+    await user.type(within(dialog).getByLabelText('Name'), 'Wawel');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Pick a point (map stub)' }),
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+    );
+    expect(locationRequests).toEqual([
+      { name: 'Wawel', latitude: 50.061698, longitude: 19.937206 },
+    ]);
+    expect(screen.getByLabelText('Where')).toHaveValue('13');
+    expect(createMilestoneHandler).not.toHaveBeenCalled();
   });
 });

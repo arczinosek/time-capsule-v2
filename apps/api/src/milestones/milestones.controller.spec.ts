@@ -11,6 +11,9 @@ describe('MilestonesController', () => {
     description: null,
     category: null,
     familyMembers: [{ id: 3, name: 'Ada', kind: 'human' }],
+    locationId: null,
+    location: null,
+    place: null,
     createdAt: new Date('2024-05-01T10:00:00.000Z'),
     updatedAt: new Date('2024-05-02T08:30:00.000Z'),
   };
@@ -22,6 +25,8 @@ describe('MilestonesController', () => {
     description: null,
     category: null,
     familyMembers: [{ id: 3, name: 'Ada', kind: 'human' }],
+    location: null,
+    place: null,
     createdAt: '2024-05-01T10:00:00.000Z',
     updatedAt: '2024-05-02T08:30:00.000Z',
   };
@@ -104,6 +109,36 @@ describe('MilestonesController', () => {
       ...expectedResponse,
       category: 'travels_and_adventures',
     });
+  });
+
+  it('maps the location and its derived place', async () => {
+    const location = {
+      id: 4,
+      name: 'Kraków',
+      latitude: 50.061698,
+      longitude: 19.937206,
+    };
+    serviceMock.findOne.mockResolvedValue({
+      ...milestone,
+      locationId: 4,
+      location,
+      place: { id: 5, name: 'Home' },
+    });
+
+    await expect(controller.findOne(1)).resolves.toEqual({
+      ...expectedResponse,
+      location,
+      place: { id: 5, name: 'Home' },
+    });
+  });
+
+  it('creates a milestone at a location', async () => {
+    const request = { date: '2024-05-01', title: 'First steps', locationId: 4 };
+    serviceMock.create.mockResolvedValue(milestone);
+
+    await controller.create(request);
+
+    expect(serviceMock.create).toHaveBeenCalledWith(request);
   });
 
   it('removes a milestone', async () => {

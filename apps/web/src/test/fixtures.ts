@@ -1,10 +1,16 @@
 import {
   familyMemberDetailResponseSchema,
   familyMemberResponseSchema,
+  locationResponseSchema,
   milestoneResponseSchema,
+  placeDetailResponseSchema,
+  placeResponseSchema,
   type FamilyMemberDetailResponse,
   type FamilyMemberResponse,
+  type LocationResponse,
   type MilestoneResponse,
+  type PlaceDetailResponse,
+  type PlaceResponse,
 } from '@time-capsule/shared';
 
 // Fixtures are parsed with the shared schemas, so they can't drift from the contract.
@@ -22,6 +28,8 @@ export function buildMilestone(
     description: null,
     category: null,
     familyMembers: [],
+    location: null,
+    place: null,
     createdAt: '2024-05-01T10:00:00.000Z',
     updatedAt: '2024-05-01T10:00:00.000Z',
     ...overrides,
@@ -56,6 +64,46 @@ export function buildFamilyMemberDetail(
     mother: null,
     father: null,
     children: [],
+    milestones: [],
+    ...overrides,
+  });
+}
+
+/** A location as GET /locations (and /locations/:id, POST, PATCH) returns it. */
+export function buildLocation(
+  overrides: Partial<LocationResponse> = {},
+): LocationResponse {
+  return locationResponseSchema.parse({
+    id: nextId++,
+    name: 'Kraków, Rynek',
+    latitude: 50.061698,
+    longitude: 19.937206,
+    place: null,
+    createdAt: '2024-05-01T10:00:00.000Z',
+    updatedAt: '2024-05-01T10:00:00.000Z',
+    ...overrides,
+  });
+}
+
+/** A place as the list (GET /places) returns it. */
+export function buildPlace(overrides: Partial<PlaceResponse> = {}): PlaceResponse {
+  return placeResponseSchema.parse({
+    id: nextId++,
+    name: 'Home',
+    description: null,
+    location: null,
+    createdAt: '2024-05-01T10:00:00.000Z',
+    updatedAt: '2024-05-01T10:00:00.000Z',
+    ...overrides,
+  });
+}
+
+/** A place as GET /places/:id (and POST, PATCH) returns it. */
+export function buildPlaceDetail(
+  overrides: Partial<PlaceDetailResponse> = {},
+): PlaceDetailResponse {
+  return placeDetailResponseSchema.parse({
+    ...buildPlace(),
     milestones: [],
     ...overrides,
   });

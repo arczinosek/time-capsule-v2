@@ -18,3 +18,20 @@ export const familyMemberSummarySchema = z.object({
 });
 
 export type FamilyMemberSummary = z.infer<typeof familyMemberSummarySchema>;
+
+/** A point on the map. Coordinates are decimal degrees (MySQL DECIMAL(9,6)). */
+export const locationSummarySchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+});
+
+export type LocationSummary = z.infer<typeof locationSummarySchema>;
+
+export const placeSummarySchema = z.object({
+  id: idSchema,
+  name: z.string(),
+});
+
+export type PlaceSummary = z.infer<typeof placeSummarySchema>;

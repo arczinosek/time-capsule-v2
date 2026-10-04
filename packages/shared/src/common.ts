@@ -34,3 +34,10 @@ export const descriptionSchema = z
   .refine((value) => utf8ByteLength(value) <= TEXT_MAX_BYTES, {
     error: messages.descriptionTooLong,
   });
+
+/** The name of a location or a place (trimmed, 1–255 characters). */
+export const placeNameSchema = z
+  .string()
+  .trim()
+  .min(1, messages.placeNameRequired)
+  .max(255, messages.placeNameTooLong);

@@ -3,6 +3,10 @@ import i18n from 'i18next';
 import { initI18n } from '~/i18n';
 import { server } from './server';
 
+// Leaflet needs a real layout: every test gets the stub maps instead. The setup file must not
+// import location-map itself, or the mock doesn't apply.
+vi.mock('~/features/locations/location-map', () => import('./location-map.mock'));
+
 // jsdom doesn't implement scrolling; the router's scroll restoration calls it on navigation.
 window.scrollTo = () => {};
 

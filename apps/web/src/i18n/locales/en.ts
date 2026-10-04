@@ -18,6 +18,7 @@ export const en = {
   'app.name': 'Time Capsule',
   'language.label': 'Language',
   'nav.familyMembers': 'Family',
+  'nav.places': 'Places',
 
   // --- common ---
   'common.cancel': 'Cancel',
@@ -53,6 +54,12 @@ export const en = {
   'validation.parents.same': 'Mother and father must be different family members',
   'validation.parent.self': 'A family member cannot be their own parent',
   'validation.familyMember.notFound': 'The chosen family member no longer exists',
+  'validation.placeName.required': 'Name is required',
+  'validation.placeName.tooLong': 'Name must be at most 255 characters',
+  'validation.latitude.invalid': 'Enter a latitude from -90 to 90',
+  'validation.longitude.invalid': 'Enter a longitude from -180 to 180',
+  'validation.location.notFound': 'The chosen location no longer exists',
+  'validation.location.taken': 'This location already belongs to another place',
 
   // --- categories (slugs from @time-capsule/shared MILESTONE_CATEGORIES) ---
   'category.life_and_memory': 'Life and memory',
@@ -74,6 +81,21 @@ export const en = {
   'markdown.hint':
     'You can use Markdown: **bold**, *italic*, # heading, - list, [link](https://…).',
 
+  // --- maps (Leaflet + OpenStreetMap) ---
+  'map.picker': 'Map for choosing the point',
+  'map.pickerHint': 'Click or tap the map to set the point, or type the coordinates.',
+  'map.preview': 'Map of {{name}}',
+  'map.marker': 'Chosen point',
+  'map.zoomIn': 'Zoom in',
+  'map.zoomOut': 'Zoom out',
+  // HTML: Leaflet renders it in the attribution control. Keep the OSM copyright link.
+  'map.attribution':
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  'map.openInOsm': 'Open in OpenStreetMap',
+  'form.coordinates.latitude': 'Latitude',
+  'form.coordinates.longitude': 'Longitude',
+  'form.coordinates.hint': 'Decimal degrees, e.g. 50.061698. A comma works too.',
+
   // --- milestones ---
   'milestones.title': 'Milestones',
   'milestones.new': 'New milestone',
@@ -87,12 +109,17 @@ export const en = {
   'milestones.deleteDescription': "This can't be undone.",
   'milestones.noDescription': 'No description.',
   'milestones.participants': 'Participants',
+  'milestones.where': 'Where',
   'milestones.form.date': 'Date',
   'milestones.form.title': 'Title',
   'milestones.form.category': 'Category',
   'milestones.form.noCategory': 'No category',
   'milestones.form.description': 'Description',
   'milestones.form.familyMembers': 'Participants',
+  'milestones.form.location': 'Where',
+  'milestones.form.noLocation': 'Not set',
+  'milestones.form.places': 'Places',
+  'milestones.form.locations': 'Other locations',
 
   // --- family members ---
   'familyMembers.title': 'Family members',
@@ -126,4 +153,41 @@ export const en = {
   'familyMembers.picker.selected': 'Selected: {{count}}',
   'familyMembers.picker.noMatches': 'No family member matches.',
   'familyMembers.picker.add': 'Add a family member',
+
+  // --- places ---
+  'places.title': 'Places',
+  'places.subnav': 'Places and locations',
+  'places.new': 'New place',
+  'places.edit': 'Edit place',
+  'places.empty': 'No places yet.',
+  'places.notFound': 'Place not found.',
+  'places.backToList': 'Back to places',
+  'places.deleteLabel': 'Delete {{name}}',
+  'places.deleteTitle': 'Delete {{name}}?',
+  'places.deleteDescription':
+    "This can't be undone. Its location and the milestones there stay.",
+  'places.noDescription': 'No description.',
+  'places.noLocation': 'No location.',
+  'places.milestones': 'Milestones here',
+  'places.noMilestones': 'No milestones here yet.',
+  'places.form.name': 'Name',
+  'places.form.location': 'Location',
+  'places.form.noLocation': 'No location',
+  'places.form.description': 'Description',
+
+  // --- locations ---
+  'locations.title': 'Locations',
+  'locations.new': 'New location',
+  'locations.newDescription': 'Set the point on the map or type its coordinates.',
+  'locations.edit': 'Edit location',
+  'locations.empty': 'No locations yet.',
+  'locations.notFound': 'Location not found.',
+  'locations.backToList': 'Back to locations',
+  'locations.editLabel': 'Edit {{name}}',
+  'locations.deleteLabel': 'Delete {{name}}',
+  'locations.deleteTitle': 'Delete {{name}}?',
+  'locations.deleteDescription':
+    "This can't be undone. Places and milestones at this location will lose it.",
+  'locations.place': 'Place:',
+  'locations.form.name': 'Name',
 } as const satisfies RequiredKeys & Record<string, string>;
