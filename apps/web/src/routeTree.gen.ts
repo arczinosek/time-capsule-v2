@@ -13,13 +13,23 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as FamilyMembersIndexRouteImport } from './routes/family-members/index'
 import { Route as FamilyMembersFamilyMemberIdRouteRouteImport } from './routes/family-members/$familyMemberId/route'
 import { Route as FamilyMembersNewRouteImport } from './routes/family-members/new'
+import { Route as LocationsIndexRouteImport } from './routes/locations/index'
+import { Route as LocationsLocationIdRouteRouteImport } from './routes/locations/$locationId/route'
+import { Route as LocationsNewRouteImport } from './routes/locations/new'
 import { Route as MilestonesIndexRouteImport } from './routes/milestones/index'
 import { Route as MilestonesMilestoneIdRouteRouteImport } from './routes/milestones/$milestoneId/route'
 import { Route as MilestonesNewRouteImport } from './routes/milestones/new'
+import { Route as PlacesIndexRouteImport } from './routes/places/index'
+import { Route as PlacesPlaceIdRouteRouteImport } from './routes/places/$placeId/route'
+import { Route as PlacesNewRouteImport } from './routes/places/new'
 import { Route as FamilyMembersFamilyMemberIdIndexRouteImport } from './routes/family-members/$familyMemberId/index'
 import { Route as FamilyMembersFamilyMemberIdEditRouteImport } from './routes/family-members/$familyMemberId/edit'
+import { Route as LocationsLocationIdIndexRouteImport } from './routes/locations/$locationId/index'
+import { Route as LocationsLocationIdEditRouteImport } from './routes/locations/$locationId/edit'
 import { Route as MilestonesMilestoneIdIndexRouteImport } from './routes/milestones/$milestoneId/index'
 import { Route as MilestonesMilestoneIdEditRouteImport } from './routes/milestones/$milestoneId/edit'
+import { Route as PlacesPlaceIdIndexRouteImport } from './routes/places/$placeId/index'
+import { Route as PlacesPlaceIdEditRouteImport } from './routes/places/$placeId/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -42,6 +52,22 @@ const FamilyMembersNewRoute = FamilyMembersNewRouteImport.update({
   path: '/family-members/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocationsIndexRoute = LocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsLocationIdRouteRoute =
+  LocationsLocationIdRouteRouteImport.update({
+    id: '/locations/$locationId',
+    path: '/locations/$locationId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LocationsNewRoute = LocationsNewRouteImport.update({
+  id: '/locations/new',
+  path: '/locations/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MilestonesIndexRoute = MilestonesIndexRouteImport.update({
   id: '/milestones/',
   path: '/milestones/',
@@ -58,6 +84,21 @@ const MilestonesNewRoute = MilestonesNewRouteImport.update({
   path: '/milestones/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlacesIndexRoute = PlacesIndexRouteImport.update({
+  id: '/places/',
+  path: '/places/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesPlaceIdRouteRoute = PlacesPlaceIdRouteRouteImport.update({
+  id: '/places/$placeId',
+  path: '/places/$placeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlacesNewRoute = PlacesNewRouteImport.update({
+  id: '/places/new',
+  path: '/places/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FamilyMembersFamilyMemberIdIndexRoute =
   FamilyMembersFamilyMemberIdIndexRouteImport.update({
     id: '/',
@@ -70,6 +111,17 @@ const FamilyMembersFamilyMemberIdEditRoute =
     path: '/edit',
     getParentRoute: () => FamilyMembersFamilyMemberIdRouteRoute,
   } as any)
+const LocationsLocationIdIndexRoute =
+  LocationsLocationIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocationsLocationIdRouteRoute,
+  } as any)
+const LocationsLocationIdEditRoute = LocationsLocationIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => LocationsLocationIdRouteRoute,
+} as any)
 const MilestonesMilestoneIdIndexRoute =
   MilestonesMilestoneIdIndexRouteImport.update({
     id: '/',
@@ -82,93 +134,165 @@ const MilestonesMilestoneIdEditRoute =
     path: '/edit',
     getParentRoute: () => MilestonesMilestoneIdRouteRoute,
   } as any)
+const PlacesPlaceIdIndexRoute = PlacesPlaceIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlacesPlaceIdRouteRoute,
+} as any)
+const PlacesPlaceIdEditRoute = PlacesPlaceIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => PlacesPlaceIdRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/family-members/$familyMemberId': typeof FamilyMembersFamilyMemberIdRouteRouteWithChildren
+  '/locations/$locationId': typeof LocationsLocationIdRouteRouteWithChildren
   '/milestones/$milestoneId': typeof MilestonesMilestoneIdRouteRouteWithChildren
+  '/places/$placeId': typeof PlacesPlaceIdRouteRouteWithChildren
   '/family-members/new': typeof FamilyMembersNewRoute
+  '/locations/new': typeof LocationsNewRoute
   '/milestones/new': typeof MilestonesNewRoute
+  '/places/new': typeof PlacesNewRoute
   '/family-members/': typeof FamilyMembersIndexRoute
+  '/locations/': typeof LocationsIndexRoute
   '/milestones/': typeof MilestonesIndexRoute
+  '/places/': typeof PlacesIndexRoute
   '/family-members/$familyMemberId/edit': typeof FamilyMembersFamilyMemberIdEditRoute
+  '/locations/$locationId/edit': typeof LocationsLocationIdEditRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/places/$placeId/edit': typeof PlacesPlaceIdEditRoute
   '/family-members/$familyMemberId/': typeof FamilyMembersFamilyMemberIdIndexRoute
+  '/locations/$locationId/': typeof LocationsLocationIdIndexRoute
   '/milestones/$milestoneId/': typeof MilestonesMilestoneIdIndexRoute
+  '/places/$placeId/': typeof PlacesPlaceIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/family-members/new': typeof FamilyMembersNewRoute
+  '/locations/new': typeof LocationsNewRoute
   '/milestones/new': typeof MilestonesNewRoute
+  '/places/new': typeof PlacesNewRoute
   '/family-members': typeof FamilyMembersIndexRoute
+  '/locations': typeof LocationsIndexRoute
   '/milestones': typeof MilestonesIndexRoute
+  '/places': typeof PlacesIndexRoute
   '/family-members/$familyMemberId/edit': typeof FamilyMembersFamilyMemberIdEditRoute
+  '/locations/$locationId/edit': typeof LocationsLocationIdEditRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/places/$placeId/edit': typeof PlacesPlaceIdEditRoute
   '/family-members/$familyMemberId': typeof FamilyMembersFamilyMemberIdIndexRoute
+  '/locations/$locationId': typeof LocationsLocationIdIndexRoute
   '/milestones/$milestoneId': typeof MilestonesMilestoneIdIndexRoute
+  '/places/$placeId': typeof PlacesPlaceIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/family-members/$familyMemberId': typeof FamilyMembersFamilyMemberIdRouteRouteWithChildren
+  '/locations/$locationId': typeof LocationsLocationIdRouteRouteWithChildren
   '/milestones/$milestoneId': typeof MilestonesMilestoneIdRouteRouteWithChildren
+  '/places/$placeId': typeof PlacesPlaceIdRouteRouteWithChildren
   '/family-members/new': typeof FamilyMembersNewRoute
+  '/locations/new': typeof LocationsNewRoute
   '/milestones/new': typeof MilestonesNewRoute
+  '/places/new': typeof PlacesNewRoute
   '/family-members/': typeof FamilyMembersIndexRoute
+  '/locations/': typeof LocationsIndexRoute
   '/milestones/': typeof MilestonesIndexRoute
+  '/places/': typeof PlacesIndexRoute
   '/family-members/$familyMemberId/edit': typeof FamilyMembersFamilyMemberIdEditRoute
+  '/locations/$locationId/edit': typeof LocationsLocationIdEditRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/places/$placeId/edit': typeof PlacesPlaceIdEditRoute
   '/family-members/$familyMemberId/': typeof FamilyMembersFamilyMemberIdIndexRoute
+  '/locations/$locationId/': typeof LocationsLocationIdIndexRoute
   '/milestones/$milestoneId/': typeof MilestonesMilestoneIdIndexRoute
+  '/places/$placeId/': typeof PlacesPlaceIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/family-members/$familyMemberId'
+    | '/locations/$locationId'
     | '/milestones/$milestoneId'
+    | '/places/$placeId'
     | '/family-members/new'
+    | '/locations/new'
     | '/milestones/new'
+    | '/places/new'
     | '/family-members/'
+    | '/locations/'
     | '/milestones/'
+    | '/places/'
     | '/family-members/$familyMemberId/edit'
+    | '/locations/$locationId/edit'
     | '/milestones/$milestoneId/edit'
+    | '/places/$placeId/edit'
     | '/family-members/$familyMemberId/'
+    | '/locations/$locationId/'
     | '/milestones/$milestoneId/'
+    | '/places/$placeId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/family-members/new'
+    | '/locations/new'
     | '/milestones/new'
+    | '/places/new'
     | '/family-members'
+    | '/locations'
     | '/milestones'
+    | '/places'
     | '/family-members/$familyMemberId/edit'
+    | '/locations/$locationId/edit'
     | '/milestones/$milestoneId/edit'
+    | '/places/$placeId/edit'
     | '/family-members/$familyMemberId'
+    | '/locations/$locationId'
     | '/milestones/$milestoneId'
+    | '/places/$placeId'
   id:
     | '__root__'
     | '/'
     | '/family-members/$familyMemberId'
+    | '/locations/$locationId'
     | '/milestones/$milestoneId'
+    | '/places/$placeId'
     | '/family-members/new'
+    | '/locations/new'
     | '/milestones/new'
+    | '/places/new'
     | '/family-members/'
+    | '/locations/'
     | '/milestones/'
+    | '/places/'
     | '/family-members/$familyMemberId/edit'
+    | '/locations/$locationId/edit'
     | '/milestones/$milestoneId/edit'
+    | '/places/$placeId/edit'
     | '/family-members/$familyMemberId/'
+    | '/locations/$locationId/'
     | '/milestones/$milestoneId/'
+    | '/places/$placeId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FamilyMembersFamilyMemberIdRouteRoute: typeof FamilyMembersFamilyMemberIdRouteRouteWithChildren
+  LocationsLocationIdRouteRoute: typeof LocationsLocationIdRouteRouteWithChildren
   MilestonesMilestoneIdRouteRoute: typeof MilestonesMilestoneIdRouteRouteWithChildren
+  PlacesPlaceIdRouteRoute: typeof PlacesPlaceIdRouteRouteWithChildren
   FamilyMembersNewRoute: typeof FamilyMembersNewRoute
+  LocationsNewRoute: typeof LocationsNewRoute
   MilestonesNewRoute: typeof MilestonesNewRoute
+  PlacesNewRoute: typeof PlacesNewRoute
   FamilyMembersIndexRoute: typeof FamilyMembersIndexRoute
+  LocationsIndexRoute: typeof LocationsIndexRoute
   MilestonesIndexRoute: typeof MilestonesIndexRoute
+  PlacesIndexRoute: typeof PlacesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -201,6 +325,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FamilyMembersNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/locations/': {
+      id: '/locations/'
+      path: '/locations'
+      fullPath: '/locations/'
+      preLoaderRoute: typeof LocationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/$locationId': {
+      id: '/locations/$locationId'
+      path: '/locations/$locationId'
+      fullPath: '/locations/$locationId'
+      preLoaderRoute: typeof LocationsLocationIdRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/new': {
+      id: '/locations/new'
+      path: '/locations/new'
+      fullPath: '/locations/new'
+      preLoaderRoute: typeof LocationsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/milestones/': {
       id: '/milestones/'
       path: '/milestones'
@@ -222,6 +367,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MilestonesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/places/': {
+      id: '/places/'
+      path: '/places'
+      fullPath: '/places/'
+      preLoaderRoute: typeof PlacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places/$placeId': {
+      id: '/places/$placeId'
+      path: '/places/$placeId'
+      fullPath: '/places/$placeId'
+      preLoaderRoute: typeof PlacesPlaceIdRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/places/new': {
+      id: '/places/new'
+      path: '/places/new'
+      fullPath: '/places/new'
+      preLoaderRoute: typeof PlacesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/family-members/$familyMemberId/': {
       id: '/family-members/$familyMemberId/'
       path: '/'
@@ -236,6 +402,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FamilyMembersFamilyMemberIdEditRouteImport
       parentRoute: typeof FamilyMembersFamilyMemberIdRouteRoute
     }
+    '/locations/$locationId/': {
+      id: '/locations/$locationId/'
+      path: '/'
+      fullPath: '/locations/$locationId/'
+      preLoaderRoute: typeof LocationsLocationIdIndexRouteImport
+      parentRoute: typeof LocationsLocationIdRouteRoute
+    }
+    '/locations/$locationId/edit': {
+      id: '/locations/$locationId/edit'
+      path: '/edit'
+      fullPath: '/locations/$locationId/edit'
+      preLoaderRoute: typeof LocationsLocationIdEditRouteImport
+      parentRoute: typeof LocationsLocationIdRouteRoute
+    }
     '/milestones/$milestoneId/': {
       id: '/milestones/$milestoneId/'
       path: '/'
@@ -249,6 +429,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/milestones/$milestoneId/edit'
       preLoaderRoute: typeof MilestonesMilestoneIdEditRouteImport
       parentRoute: typeof MilestonesMilestoneIdRouteRoute
+    }
+    '/places/$placeId/': {
+      id: '/places/$placeId/'
+      path: '/'
+      fullPath: '/places/$placeId/'
+      preLoaderRoute: typeof PlacesPlaceIdIndexRouteImport
+      parentRoute: typeof PlacesPlaceIdRouteRoute
+    }
+    '/places/$placeId/edit': {
+      id: '/places/$placeId/edit'
+      path: '/edit'
+      fullPath: '/places/$placeId/edit'
+      preLoaderRoute: typeof PlacesPlaceIdEditRouteImport
+      parentRoute: typeof PlacesPlaceIdRouteRoute
     }
   }
 }
@@ -270,6 +464,22 @@ const FamilyMembersFamilyMemberIdRouteRouteWithChildren =
     FamilyMembersFamilyMemberIdRouteRouteChildren,
   )
 
+interface LocationsLocationIdRouteRouteChildren {
+  LocationsLocationIdEditRoute: typeof LocationsLocationIdEditRoute
+  LocationsLocationIdIndexRoute: typeof LocationsLocationIdIndexRoute
+}
+
+const LocationsLocationIdRouteRouteChildren: LocationsLocationIdRouteRouteChildren =
+  {
+    LocationsLocationIdEditRoute: LocationsLocationIdEditRoute,
+    LocationsLocationIdIndexRoute: LocationsLocationIdIndexRoute,
+  }
+
+const LocationsLocationIdRouteRouteWithChildren =
+  LocationsLocationIdRouteRoute._addFileChildren(
+    LocationsLocationIdRouteRouteChildren,
+  )
+
 interface MilestonesMilestoneIdRouteRouteChildren {
   MilestonesMilestoneIdEditRoute: typeof MilestonesMilestoneIdEditRoute
   MilestonesMilestoneIdIndexRoute: typeof MilestonesMilestoneIdIndexRoute
@@ -286,15 +496,34 @@ const MilestonesMilestoneIdRouteRouteWithChildren =
     MilestonesMilestoneIdRouteRouteChildren,
   )
 
+interface PlacesPlaceIdRouteRouteChildren {
+  PlacesPlaceIdEditRoute: typeof PlacesPlaceIdEditRoute
+  PlacesPlaceIdIndexRoute: typeof PlacesPlaceIdIndexRoute
+}
+
+const PlacesPlaceIdRouteRouteChildren: PlacesPlaceIdRouteRouteChildren = {
+  PlacesPlaceIdEditRoute: PlacesPlaceIdEditRoute,
+  PlacesPlaceIdIndexRoute: PlacesPlaceIdIndexRoute,
+}
+
+const PlacesPlaceIdRouteRouteWithChildren =
+  PlacesPlaceIdRouteRoute._addFileChildren(PlacesPlaceIdRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FamilyMembersFamilyMemberIdRouteRoute:
     FamilyMembersFamilyMemberIdRouteRouteWithChildren,
+  LocationsLocationIdRouteRoute: LocationsLocationIdRouteRouteWithChildren,
   MilestonesMilestoneIdRouteRoute: MilestonesMilestoneIdRouteRouteWithChildren,
+  PlacesPlaceIdRouteRoute: PlacesPlaceIdRouteRouteWithChildren,
   FamilyMembersNewRoute: FamilyMembersNewRoute,
+  LocationsNewRoute: LocationsNewRoute,
   MilestonesNewRoute: MilestonesNewRoute,
+  PlacesNewRoute: PlacesNewRoute,
   FamilyMembersIndexRoute: FamilyMembersIndexRoute,
+  LocationsIndexRoute: LocationsIndexRoute,
   MilestonesIndexRoute: MilestonesIndexRoute,
+  PlacesIndexRoute: PlacesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

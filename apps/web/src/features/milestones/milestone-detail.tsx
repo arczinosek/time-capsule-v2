@@ -3,6 +3,7 @@ import type { MilestoneResponse } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
 import { Markdown } from '~/components/markdown';
 import { Button } from '~/components/ui/button';
+import { LocationOnMap } from '~/features/locations/location-on-map';
 import { useLanguage } from '~/i18n';
 import { formatDate } from '~/lib/dates';
 import { DeleteMilestoneButton } from './delete-milestone-button';
@@ -50,6 +51,23 @@ export function MilestoneDetail({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+      {milestone.location && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">{t('milestones.where')}</h2>
+          {milestone.place && (
+            <p>
+              <Link
+                to="/places/$placeId"
+                params={{ placeId: milestone.place.id }}
+                className="font-medium underline-offset-4 hover:underline"
+              >
+                {milestone.place.name}
+              </Link>
+            </p>
+          )}
+          <LocationOnMap location={milestone.location} />
         </section>
       )}
       <div className="flex gap-2">

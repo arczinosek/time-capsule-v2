@@ -20,6 +20,13 @@ export const messages = {
   sameParents: 'validation.parents.same',
   ownParent: 'validation.parent.self',
   familyMemberNotFound: 'validation.familyMember.notFound',
+  // Locations and places: "name" here is a place name (PL "Nazwa", not a person's "Imię").
+  placeNameRequired: 'validation.placeName.required',
+  placeNameTooLong: 'validation.placeName.tooLong',
+  latitudeInvalid: 'validation.latitude.invalid',
+  longitudeInvalid: 'validation.longitude.invalid',
+  locationNotFound: 'validation.location.notFound',
+  locationTaken: 'validation.location.taken',
 } as const;
 
 export type MessageKey = (typeof messages)[keyof typeof messages];

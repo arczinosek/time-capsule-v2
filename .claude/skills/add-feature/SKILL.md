@@ -9,7 +9,11 @@ Milestones is the reference implementation. Before writing anything, open the ma
 milestones file for each step below and copy its shape; the conventions behind it are in
 CLAUDE.md. For **relations** (a foreign key, a many-to-many, cross-field rules, checks that need
 the database, a picker of other rows), family members is the reference: `family-members.ts`,
-`apps/api/src/family-members/*`, milestone participants, `features/family-members/*`. This skill covers **order**, **wiring** and the **traps** that actually bit
+`apps/api/src/family-members/*`, milestone participants, `features/family-members/*`. For an
+**optional 1:1 link** (a nullable UNIQUE FK, a value derived through it, `ON DELETE SET NULL`,
+creating the linked row from a dialog inside the form) and **heavy browser-only UI** (maps),
+locations and places are the reference: `locations.ts`, `places.ts`, `apps/api/src/places/*`,
+`features/locations/*`, `features/places/*`. This skill covers **order**, **wiring** and the **traps** that actually bit
 while the reference was built.
 
 The order matters because each layer compiles against the one before it. The contract comes
@@ -48,8 +52,11 @@ Reference: `packages/shared/src/milestones.ts`, `milestones.spec.ts`.
 - **Cross-field rules** (`deathAfterBirth`, `distinctParents` in `family-members.ts`): export an
   unrefined `xFieldsSchema` and each rule as a tuple `[check, { path, error: messages.key }]`;
   `createX = fields.refine(...rule)`, `updateX = fields.partial().refine(nonEmpty).refine(...rule)`.
-- **Relations**: a many-to-many is `xIds: z.array(idSchema).optional()` on the owner's create
-  request (never `.default([])`); the response embeds a summary array (`familyMembers:
+- **Relations**: an optional link is `xId: idSchema.nullish()` on the request and an embedded
+  `xSummarySchema.nullable()` on the response (`locationId` → `location`); a value derived
+  through it is response-only (`place` on a milestone). A many-to-many is
+  `xIds: z.array(idSchema).optional()` on the owner's create request (never `.default([])`);
+  the response embeds a summary array (`familyMembers:
   familyMemberSummarySchema[]`). Summary schemas embedded across features go in the leaf
   `summaries.ts`; `milestoneSummarySchema` stays in `milestones.ts`, imported one way. A detail
   endpoint that shows relations answers `xDetailResponseSchema = xResponseSchema.extend({...})`.
@@ -84,6 +91,13 @@ Reference: `apps/api/src/milestones/*`, `test/milestones.e2e-spec.ts`.
      `FOR SHARE`, skip `set()` when no column came, and replace the join rows (delete, then
      insert unless empty). Attach embedded relations with one batched `inArray` query and add
      them to the one growing row type (`MilestoneRow`). Reuse `xSummaryColumns`/`toXSummary`.
+   - A 1:1 link is a left join in the shared select (`selectX()` with `.$dynamic()`, used by
+     `findAll` and `findOne`): `select({ ...getTableColumns(x), location: locationSummaryColumns })`.
+     Keep each embedded object a top-level key from one table, so Drizzle answers `null`.
+   - An exclusive link (a location has at most one place) is a nullable UNIQUE column plus a
+     service check that locks the target `FOR UPDATE` and answers 400 on the field
+     (`assertLocationAvailable`). Prefer `ON DELETE SET NULL` to a 409 when losing the link is
+     acceptable: the delete stays a plain idempotent delete.
 3. **Mapper** (`<x>.mapper.ts`): `toXResponse(row): XResponse`, listing every field
    explicitly and converting `Date` with `.toISOString()`. Don't use `...row`: explicit fields
    are what make a new column opt-in and a new contract field a compile error.
@@ -171,6 +185,9 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
      cache, and add loaders only for extra lists.
    - After create (`mutateAsync` returns the new row) or edit, navigate to the detail page; the
      edit form's Cancel goes there too.
+   - A row without a page of its own (a location): `$xId/index.tsx` throws
+     `redirect({ to: '/x/$xId/edit', params, replace: true })` in `beforeLoad`, so `/x/5` never
+     renders an empty outlet; list rows link straight to `/edit`.
    - Give the form `key={x.id}`: the router reuses the component across ids, and RHF reads
      `defaultValues` only once.
    - Only route files belong in `src/routes`. The plugin turns every file there into a route,
@@ -178,9 +195,18 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
    - The router plugin regenerates `src/routeTree.gen.ts` on `dev`, `build` or `test`.
      **Commit it.** `<Link to>` and `createFileRoute` paths are typed from it, so a new route
      shows type errors until one of those has run.
-7. **New shadcn component?** `pnpm --filter web exec shadcn add <name>`. It writes `~/`
+7. **Creating a linked row without leaving the form**: a dialog component next to the select
+   (`CreateLocationDialog`) that calls `onCreated(row)` after `mutateAsync` (the hook's
+   `onSuccess` has refetched the list, so `setValue` finds the new option). Its form calls
+   `event.stopPropagation()` on submit (see Traps). `DialogContent showCloseButton={false}`
+   (English sr-only text) and a translated Cancel in `DialogClose`.
+8. **Heavy browser-only UI** (maps): one module with the real code (`location-map.tsx`), one
+   small module that `lazy()`-loads it and is the only import the app uses (`lazy-maps.tsx`),
+   and a global `vi.mock` of the heavy module in `src/test/setup.ts` with a stub in `src/test/`.
+   Check the entry chunk: `grep -l leaflet apps/web/dist/assets/index-*.js` prints nothing.
+9. **New shadcn component?** `pnpm --filter web exec shadcn add <name>`. It writes `~/`
    imports (the alias comes from tsconfig `paths`). Don't hand-edit `src/components/ui/`.
-8. **Imports**: externals, then `@time-capsule/*`, then `~/...`, then relative. Use relative
+10. **Imports**: externals, then `@time-capsule/*`, then `~/...`, then relative. Use relative
    imports within the feature folder.
 
 ## 4. Web tests: `*.spec.tsx` next to the code
@@ -216,6 +242,10 @@ Reference: `features/milestones/milestone-list.spec.tsx`, `milestone-form.spec.t
   - edit loads and saves
   - a 404 shows not-found
   - the detail page shows the fields, and deleting there returns to the list
+- Lazy chunks (Markdown, the map stub) render after a tick: wait with `findBy*` for what they
+  show (`findByTestId('location-preview-map')`).
+- A dialog-in-form test asserts that the outer form's POST handler (`vi.fn()`) was never called
+  and that the new option is selected.
 - These already work in jsdom, so don't add workarounds: `user.type` on date inputs, Radix
   AlertDialog, jest-dom matchers. `window.scrollTo` is stubbed in `src/test/setup.ts`.
 
@@ -229,7 +259,8 @@ which also type-checks specs through `tsconfig.test.json`).
   `pnpm front:start:dev`, then click through at http://localhost:5173.
   `pnpm --filter api start:dev` alone runs a stale or missing `packages/shared/dist`
   (`ERR_MODULE_NOT_FOUND .../shared/dist/index.js`).
-- Update CLAUDE.md: "Implemented so far", plus the layout if new top-level folders appeared.
+- Update CLAUDE.md: "Implemented so far", plus the layout if new top-level folders appeared,
+  and README's intro paragraph.
 - Commit the regenerated `apps/web/src/routeTree.gen.ts`.
 
 ## Traps worth knowing
@@ -267,6 +298,13 @@ which also type-checks specs through `tsconfig.test.json`).
   - `.default([])` on an optional relation array clears it on every PATCH that omits it.
   - Shared modules importing each other (e.g. `milestones.ts` ↔ `family-members.ts`) hit the TDZ
     at load ("Cannot access … before initialization"): embedded summaries go in `summaries.ts`.
+  - MySQL sorts `NULL` first in `ASC`: put unknown values last with
+    `orderBy(asc(isNull(col)), asc(col), …)` (family-member children by birth date).
+  - A nested object in a Drizzle select is only nulled at the top level and only when all its
+    columns come from one left-joined table; deeper nesting gives `{ id: null, … }`.
+  - A form inside a Radix Dialog that sits inside another form: the DOM is portalled out, but
+    React bubbles `submit` through the component tree to the outer `onSubmit`, which then
+    validates and posts. `event.stopPropagation()` in the inner form's `onSubmit`.
   - Radix Checkbox/RadioGroup inside a form render a bubble input that needs ResizeObserver,
     which jsdom lacks: use native inputs.
   - Extra text inside a checkbox's `<label>` (a kind hint) joins its accessible name; mark it

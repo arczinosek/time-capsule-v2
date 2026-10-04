@@ -22,6 +22,13 @@
       "when": 1791134574023,
       "tag": "0002_add_family_members",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1791137987641,
+      "tag": "0003_add_locations_and_places",
+      "breakpoints": true
     }
   ]
 }

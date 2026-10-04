@@ -129,6 +129,33 @@ describe('milestone schemas', () => {
       },
     );
 
+    it('accepts a location, or null for none', () => {
+      expect(
+        createMilestoneRequestSchema.parse({
+          date: '2024-05-01',
+          title: 'Birth',
+          locationId: 4,
+        }).locationId,
+      ).toBe(4);
+      expect(
+        createMilestoneRequestSchema.parse({
+          date: '2024-05-01',
+          title: 'Birth',
+          locationId: null,
+        }).locationId,
+      ).toBeNull();
+    });
+
+    it.each([0, 1.5, '4'])('rejects locationId %j', (locationId) => {
+      expect(
+        createMilestoneRequestSchema.safeParse({
+          date: '2024-05-01',
+          title: 'Birth',
+          locationId,
+        }).success,
+      ).toBe(false);
+    });
+
     it('reports an issue without its own key as validation.invalid with the fallback map', () => {
       const result = createMilestoneRequestSchema.safeParse(
         { date: '2024-05-01', title: 42 },
@@ -179,6 +206,8 @@ describe('milestone schemas', () => {
       description: null,
       category: null,
       familyMembers: [],
+      location: null,
+      place: null,
       createdAt: '2024-05-01T10:00:00.000Z',
       updatedAt: '2024-05-01T10:00:00.000Z',
     };
@@ -224,6 +253,26 @@ describe('milestone schemas', () => {
       expect(
         milestoneResponseSchema.safeParse(withoutFamilyMembers).success,
       ).toBe(false);
+    });
+
+    it('accepts a location and its derived place', () => {
+      const expectedMilestone = {
+        ...milestone,
+        location: { id: 2, name: 'Kraków', latitude: 50.061698, longitude: 19.937206 },
+        place: { id: 3, name: 'Home' },
+      };
+
+      expect(milestoneResponseSchema.parse(expectedMilestone)).toEqual(
+        expectedMilestone,
+      );
+    });
+
+    it('requires the location and place keys (null when unset)', () => {
+      const { location: _location, ...withoutLocation } = milestone;
+      const { place: _place, ...withoutPlace } = milestone;
+
+      expect(milestoneResponseSchema.safeParse(withoutLocation).success).toBe(false);
+      expect(milestoneResponseSchema.safeParse(withoutPlace).success).toBe(false);
     });
 
     it('rejects Date timestamps: the wire format is ISO strings', () => {

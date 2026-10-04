@@ -5,6 +5,7 @@ import {
 } from '@tanstack/react-query';
 import type { UpdateMilestoneRequest } from '@time-capsule/shared';
 import { familyMembersKey } from '~/features/family-members/queries';
+import { placesKey } from '~/features/places/queries';
 import {
   createMilestone,
   deleteMilestone,
@@ -27,8 +28,8 @@ export const milestoneQueries = {
 
 // Mutation hooks own cache updates; components own navigation (await mutateAsync, then
 // navigate). onSuccess RETURNS the invalidation promise: v5 awaits it, so the mutation stays
-// pending until the cache is up to date. Every write also invalidates the family members:
-// their pages list the milestones they take part in.
+// pending until the cache is up to date. Every write also invalidates the family members and
+// the places: their pages list the milestones they take part in, or that happened there.
 
 export function useCreateMilestone() {
   const queryClient = useQueryClient();
@@ -40,6 +41,7 @@ export function useCreateMilestone() {
           queryKey: milestoneQueries.list().queryKey,
         }),
         queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+        queryClient.invalidateQueries({ queryKey: placesKey }),
       ]),
   });
 }
@@ -60,6 +62,7 @@ export function useUpdateMilestone() {
           queryKey: milestoneQueries.list().queryKey,
         }),
         queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+        queryClient.invalidateQueries({ queryKey: placesKey }),
       ]);
     },
   });
@@ -78,6 +81,7 @@ export function useDeleteMilestone() {
           queryKey: milestoneQueries.list().queryKey,
         }),
         queryClient.invalidateQueries({ queryKey: familyMembersKey }),
+        queryClient.invalidateQueries({ queryKey: placesKey }),
       ]);
     },
   });

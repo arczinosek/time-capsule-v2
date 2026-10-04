@@ -7,7 +7,7 @@ import {
   type MessageKey,
   type UpdateFamilyMemberRequest,
 } from '@time-capsule/shared';
-import { asc, eq, inArray, or } from 'drizzle-orm';
+import { asc, eq, inArray, isNull, or } from 'drizzle-orm';
 import { FieldValidationError } from '../common/field-validation.error.js';
 import { NotFoundError } from '../common/not-found.error.js';
 import {
@@ -81,7 +81,9 @@ export class FamilyMembersService {
         .where(
           or(eq(familyMembers.motherId, id), eq(familyMembers.fatherId, id)),
         )
+        // MySQL sorts NULL first: put children with an unknown birth date last.
         .orderBy(
+          asc(isNull(familyMembers.birthDate)),
           asc(familyMembers.birthDate),
           asc(familyMembers.name),
           asc(familyMembers.id),

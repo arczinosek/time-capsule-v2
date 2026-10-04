@@ -147,6 +147,28 @@ describe('FamilyMembersController (e2e)', () => {
     await request(server).delete(`/family-members/${mother.id}`).expect(204);
   });
 
+  it('lists children by birth date, unknown birth dates last, then by name', async () => {
+    const mother = await create({ name: unique('Anna'), kind: 'human' });
+    const child = (name: string, birthDate: string | null) =>
+      create({ name, kind: 'human', birthDate, motherId: mother.id });
+    // Same suffix on every name, so the prefix decides the order between the unknown ones.
+    const suffix = unique('');
+    const unknownB = await child(`Bolek${suffix}`, null);
+    const younger = await child(`Ola${suffix}`, '1995-01-01');
+    const unknownA = await child(`Adam${suffix}`, null);
+    const older = await child(`Zenek${suffix}`, '1990-01-01');
+
+    const res = await request(app.getHttpServer())
+      .get(`/family-members/${mother.id}`)
+      .expect(200);
+
+    expect(
+      familyMemberDetailResponseSchema
+        .parse(res.body)
+        .children.map(({ id }) => id),
+    ).toEqual([older.id, younger.id, unknownA.id, unknownB.id]);
+  });
+
   it('clears a parent with null', async () => {
     const mother = await create({ name: unique('Anna'), kind: 'human' });
     const child = await create({

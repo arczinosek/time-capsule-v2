@@ -14,6 +14,7 @@ export const pl = {
   'app.name': 'Kapsuła czasu',
   'language.label': 'Język',
   'nav.familyMembers': 'Rodzina',
+  'nav.places': 'Miejsca',
 
   // --- common ---
   'common.cancel': 'Anuluj',
@@ -49,6 +50,12 @@ export const pl = {
   'validation.parents.same': 'Matka i ojciec muszą być różnymi członkami rodziny',
   'validation.parent.self': 'Członek rodziny nie może być swoim własnym rodzicem',
   'validation.familyMember.notFound': 'Wybrany członek rodziny już nie istnieje',
+  'validation.placeName.required': 'Nazwa jest wymagana',
+  'validation.placeName.tooLong': 'Nazwa może mieć najwyżej 255 znaków',
+  'validation.latitude.invalid': 'Podaj szerokość geograficzną od -90 do 90',
+  'validation.longitude.invalid': 'Podaj długość geograficzną od -180 do 180',
+  'validation.location.notFound': 'Wybrana lokalizacja już nie istnieje',
+  'validation.location.taken': 'Ta lokalizacja należy już do innego miejsca',
 
   // --- categories (slugs from @time-capsule/shared MILESTONE_CATEGORIES) ---
   'category.life_and_memory': 'Życie i wspomnienia',
@@ -70,6 +77,20 @@ export const pl = {
   'markdown.hint':
     'Możesz używać Markdown: **pogrubienie**, *kursywa*, # nagłówek, - lista, [link](https://…).',
 
+  // --- maps (Leaflet + OpenStreetMap) ---
+  'map.picker': 'Mapa do wyboru punktu',
+  'map.pickerHint': 'Kliknij lub dotknij mapy, aby ustawić punkt, albo wpisz współrzędne.',
+  'map.preview': 'Mapa: {{name}}',
+  'map.marker': 'Wybrany punkt',
+  'map.zoomIn': 'Przybliż',
+  'map.zoomOut': 'Oddal',
+  'map.attribution':
+    '&copy; <a href="https://www.openstreetmap.org/copyright">autorzy OpenStreetMap</a>',
+  'map.openInOsm': 'Otwórz w OpenStreetMap',
+  'form.coordinates.latitude': 'Szerokość geograficzna',
+  'form.coordinates.longitude': 'Długość geograficzna',
+  'form.coordinates.hint': 'Stopnie dziesiętne, np. 50,061698. Kropka też działa.',
+
   // --- milestones ---
   'milestones.title': 'Wydarzenia',
   'milestones.new': 'Nowe wydarzenie',
@@ -83,12 +104,17 @@ export const pl = {
   'milestones.deleteDescription': 'Tej operacji nie można cofnąć.',
   'milestones.noDescription': 'Brak opisu.',
   'milestones.participants': 'Uczestnicy',
+  'milestones.where': 'Gdzie',
   'milestones.form.date': 'Data',
   'milestones.form.title': 'Tytuł',
   'milestones.form.category': 'Kategoria',
   'milestones.form.noCategory': 'Bez kategorii',
   'milestones.form.description': 'Opis',
   'milestones.form.familyMembers': 'Uczestnicy',
+  'milestones.form.location': 'Gdzie',
+  'milestones.form.noLocation': 'Nie podano',
+  'milestones.form.places': 'Miejsca',
+  'milestones.form.locations': 'Inne lokalizacje',
 
   // --- family members ---
   'familyMembers.title': 'Członkowie rodziny',
@@ -122,4 +148,41 @@ export const pl = {
   'familyMembers.picker.selected': 'Wybrano: {{count}}',
   'familyMembers.picker.noMatches': 'Nikt nie pasuje do wyszukiwania.',
   'familyMembers.picker.add': 'Dodaj członka rodziny',
+
+  // --- places ---
+  'places.title': 'Miejsca',
+  'places.subnav': 'Miejsca i lokalizacje',
+  'places.new': 'Nowe miejsce',
+  'places.edit': 'Edytuj miejsce',
+  'places.empty': 'Nie ma jeszcze żadnych miejsc.',
+  'places.notFound': 'Nie znaleziono miejsca.',
+  'places.backToList': 'Wróć do miejsc',
+  'places.deleteLabel': 'Usuń {{name}}',
+  'places.deleteTitle': 'Usunąć „{{name}}”?',
+  'places.deleteDescription':
+    'Tej operacji nie można cofnąć. Jego lokalizacja i wydarzenia w niej zostaną.',
+  'places.noDescription': 'Brak opisu.',
+  'places.noLocation': 'Brak lokalizacji.',
+  'places.milestones': 'Wydarzenia w tym miejscu',
+  'places.noMilestones': 'Nie ma tu jeszcze żadnych wydarzeń.',
+  'places.form.name': 'Nazwa',
+  'places.form.location': 'Lokalizacja',
+  'places.form.noLocation': 'Bez lokalizacji',
+  'places.form.description': 'Opis',
+
+  // --- locations ---
+  'locations.title': 'Lokalizacje',
+  'locations.new': 'Nowa lokalizacja',
+  'locations.newDescription': 'Ustaw punkt na mapie albo wpisz jego współrzędne.',
+  'locations.edit': 'Edytuj lokalizację',
+  'locations.empty': 'Nie ma jeszcze żadnych lokalizacji.',
+  'locations.notFound': 'Nie znaleziono lokalizacji.',
+  'locations.backToList': 'Wróć do lokalizacji',
+  'locations.editLabel': 'Edytuj {{name}}',
+  'locations.deleteLabel': 'Usuń {{name}}',
+  'locations.deleteTitle': 'Usunąć „{{name}}”?',
+  'locations.deleteDescription':
+    'Tej operacji nie można cofnąć. Miejsca i wydarzenia w tej lokalizacji stracą ją.',
+  'locations.place': 'Miejsce:',
+  'locations.form.name': 'Nazwa',
 } as const satisfies Translation<typeof en, 'one' | 'few' | 'many' | 'other'>;

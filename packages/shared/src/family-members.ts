@@ -86,7 +86,7 @@ export const familyMemberResponseSchema = z.object({
 export const familyMemberDetailResponseSchema = familyMemberResponseSchema.extend({
   mother: familyMemberSummarySchema.nullable(),
   father: familyMemberSummarySchema.nullable(),
-  /** Sorted by birth date, then name. */
+  /** Sorted by birth date (unknown last), then name. */
   children: z.array(familyMemberSummarySchema),
   /** Sorted by date, oldest first. */
   milestones: z.array(milestoneSummarySchema),

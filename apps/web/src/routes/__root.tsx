@@ -24,6 +24,12 @@ function RootLayout() {
           >
             {t('nav.familyMembers')}
           </Link>
+          <Link
+            to="/places"
+            className="text-sm font-medium underline-offset-4 hover:underline"
+          >
+            {t('nav.places')}
+          </Link>
           <LanguageSwitcher />
         </div>
       </header>

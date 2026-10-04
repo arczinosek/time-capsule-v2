@@ -4,10 +4,13 @@ import {
   createMilestoneRequestSchema,
   descriptionSchema,
   fallbackErrorMap,
+  idSchema,
   MILESTONE_CATEGORIES,
   milestoneCategorySchema,
   type FamilyMemberResponse,
+  type LocationResponse,
   type MilestoneResponse,
+  type PlaceResponse,
 } from '@time-capsule/shared';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -27,9 +30,11 @@ import {
 import { Input } from '~/components/ui/input';
 import {
   NativeSelect,
+  NativeSelectOptGroup,
   NativeSelectOption,
 } from '~/components/ui/native-select';
 import { FamilyMemberPicker } from '~/features/family-members/family-member-picker';
+import { CreateLocationDialog } from '~/features/locations/create-location-dialog';
 import { useTranslateMessage } from '~/i18n';
 import { applyApiErrors } from '~/lib/form-errors';
 
@@ -47,6 +52,11 @@ const milestoneFormSchema = createMilestoneRequestSchema.extend({
   // Required here (optional on the wire): the form always sends the whole set, so an edit
   // replaces the participants.
   familyMemberIds: createMilestoneRequestSchema.shape.familyMemberIds.unwrap(),
+  // One select for places and other locations: either way its value is a location id.
+  locationId: z
+    .string()
+    .transform((value) => (value === '' ? null : Number(value)))
+    .pipe(idSchema.nullable()),
 });
 
 /** What the inputs hold. */
@@ -60,6 +70,7 @@ export const emptyMilestoneFormValues: MilestoneFormValues = {
   description: '',
   category: '',
   familyMemberIds: [],
+  locationId: '',
 };
 
 export function toMilestoneFormValues(
@@ -71,6 +82,7 @@ export function toMilestoneFormValues(
     description: milestone.description ?? '',
     category: milestone.category ?? '',
     familyMemberIds: milestone.familyMembers.map(({ id }) => id),
+    locationId: milestone.location === null ? '' : String(milestone.location.id),
   };
 }
 
@@ -78,6 +90,9 @@ type MilestoneFormProps = {
   defaultValues: MilestoneFormValues;
   /** The participant options. */
   familyMembers: FamilyMemberResponse[];
+  /** The "where" options: the places that have a location, and the locations no place owns. */
+  places: PlaceResponse[];
+  locations: LocationResponse[];
   /** Translated text of the submit button. */
   submitLabel: string;
   /** The milestone being edited: Cancel goes back to its page instead of the list. */
@@ -89,6 +104,8 @@ type MilestoneFormProps = {
 export function MilestoneForm({
   defaultValues,
   familyMembers,
+  places,
+  locations,
   submitLabel,
   milestoneId,
   onSubmit,
@@ -112,6 +129,12 @@ export function MilestoneForm({
   });
 
   const serverError = form.formState.errors.root?.server;
+  // A location has at most one place, so a place's option value (its location id) never
+  // collides with a free location's.
+  const placeOptions = places.flatMap(({ name, location }) =>
+    location === null ? [] : [{ name, locationId: location.id }],
+  );
+  const locationOptions = locations.filter(({ place }) => place === null);
 
   return (
     <form onSubmit={submit} noValidate>
@@ -181,6 +204,62 @@ export function MilestoneForm({
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
+              <FieldErrorMessage error={fieldState.error} />
+            </Field>
+          )}
+        />
+        <Controller
+          name="locationId"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="milestone-location">
+                {t('milestones.form.location')}
+              </FieldLabel>
+              <div className="flex flex-wrap gap-2">
+                <NativeSelect
+                  className="min-w-48 flex-1"
+                  {...field}
+                  id="milestone-location"
+                  aria-invalid={fieldState.invalid}
+                >
+                  <NativeSelectOption value="">
+                    {t('milestones.form.noLocation')}
+                  </NativeSelectOption>
+                  {placeOptions.length > 0 && (
+                    <NativeSelectOptGroup label={t('milestones.form.places')}>
+                      {placeOptions.map((option) => (
+                        <NativeSelectOption
+                          key={option.locationId}
+                          value={String(option.locationId)}
+                        >
+                          {option.name}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelectOptGroup>
+                  )}
+                  {locationOptions.length > 0 && (
+                    <NativeSelectOptGroup label={t('milestones.form.locations')}>
+                      {locationOptions.map((location) => (
+                        <NativeSelectOption
+                          key={location.id}
+                          value={String(location.id)}
+                        >
+                          {location.name}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelectOptGroup>
+                  )}
+                </NativeSelect>
+                <CreateLocationDialog
+                  onCreated={(location) =>
+                    form.setValue('locationId', String(location.id), {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                />
+              </div>
               <FieldErrorMessage error={fieldState.error} />
             </Field>
           )}
