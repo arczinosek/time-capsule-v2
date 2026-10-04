@@ -7,6 +7,7 @@ export function toMilestoneResponse(milestone: Milestone): MilestoneResponse {
     date: milestone.date,
     title: milestone.title,
     description: milestone.description,
+    category: milestone.category,
     createdAt: milestone.createdAt.toISOString(),
     updatedAt: milestone.updatedAt.toISOString(),
   };

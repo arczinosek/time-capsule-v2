@@ -8,6 +8,13 @@
       "when": 1790631497805,
       "tag": "0000_create_milestones",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1791133137833,
+      "tag": "0001_add_milestone_category",
+      "breakpoints": true
     }
   ]
 }

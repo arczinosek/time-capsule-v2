@@ -1,5 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { MilestoneResponse } from '@time-capsule/shared';
+import { useTranslation } from 'react-i18next';
+import { Markdown } from '~/components/markdown';
 import { Button } from '~/components/ui/button';
 import {
   Card,
@@ -9,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
+import { useLanguage } from '~/i18n';
+import { formatDate } from '~/lib/dates';
 import { DeleteMilestoneButton } from './delete-milestone-button';
 
 export function MilestoneList({
@@ -16,8 +20,11 @@ export function MilestoneList({
 }: {
   milestones: MilestoneResponse[];
 }) {
+  const { t } = useTranslation();
+  const language = useLanguage();
+
   if (milestones.length === 0) {
-    return <p className="text-muted-foreground">No milestones yet.</p>;
+    return <p className="text-muted-foreground">{t('milestones.empty')}</p>;
   }
   return (
     <ul className="space-y-4">
@@ -25,10 +32,21 @@ export function MilestoneList({
         <li key={milestone.id}>
           <Card>
             <CardHeader>
-              <CardTitle>{milestone.title}</CardTitle>
+              <CardTitle>
+                <Link
+                  to="/milestones/$milestoneId"
+                  params={{ milestoneId: milestone.id }}
+                  className="hover:underline"
+                >
+                  {milestone.title}
+                </Link>
+              </CardTitle>
               <CardDescription>
-                {/* The api's YYYY-MM-DD as-is: new Date() would shift it by the timezone. */}
-                <time dateTime={milestone.date}>{milestone.date}</time>
+                <time dateTime={milestone.date}>
+                  {formatDate(milestone.date, language)}
+                </time>
+                {milestone.category &&
+                  ` · ${t(`category.${milestone.category}`)}`}
               </CardDescription>
               <CardAction className="flex gap-2">
                 {/* Distinct accessible names for repeated controls (screen readers, tests). */}
@@ -36,17 +54,19 @@ export function MilestoneList({
                   <Link
                     to="/milestones/$milestoneId/edit"
                     params={{ milestoneId: milestone.id }}
-                    aria-label={`Edit ${milestone.title}`}
+                    aria-label={t('milestones.editLabel', {
+                      title: milestone.title,
+                    })}
                   >
-                    Edit
+                    {t('common.edit')}
                   </Link>
                 </Button>
                 <DeleteMilestoneButton milestone={milestone} />
               </CardAction>
             </CardHeader>
             {milestone.description && (
-              <CardContent className="whitespace-pre-line">
-                {milestone.description}
+              <CardContent>
+                <Markdown>{milestone.description}</Markdown>
               </CardContent>
             )}
           </Card>

@@ -10,6 +10,7 @@ describe('MilestonesController', () => {
     date: '2024-05-01',
     title: 'First steps',
     description: null,
+    category: null,
     createdAt: new Date('2024-05-01T10:00:00.000Z'),
     updatedAt: new Date('2024-05-02T08:30:00.000Z'),
   };
@@ -19,6 +20,7 @@ describe('MilestonesController', () => {
     date: '2024-05-01',
     title: 'First steps',
     description: null,
+    category: null,
     createdAt: '2024-05-01T10:00:00.000Z',
     updatedAt: '2024-05-02T08:30:00.000Z',
   };
@@ -64,6 +66,18 @@ describe('MilestonesController', () => {
     });
 
     expect(serviceMock.update).toHaveBeenCalledWith(1, request);
+  });
+
+  it('maps the category', async () => {
+    serviceMock.findOne.mockResolvedValue({
+      ...milestone,
+      category: 'travels_and_adventures',
+    });
+
+    await expect(controller.findOne(1)).resolves.toEqual({
+      ...expectedResponse,
+      category: 'travels_and_adventures',
+    });
   });
 
   it('removes a milestone', async () => {

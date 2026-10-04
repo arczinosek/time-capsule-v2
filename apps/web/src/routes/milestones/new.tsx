@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '~/components/ui/card';
 import {
   emptyMilestoneFormValues,
@@ -13,17 +14,21 @@ export const Route = createFileRoute('/milestones/new')({
 function NewMilestonePage() {
   const create = useCreateMilestone();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <section className="space-y-6">
-      <h1 className="text-xl font-semibold">New milestone</h1>
+      <h1 className="text-xl font-semibold">{t('milestones.new')}</h1>
       <Card>
         <CardContent>
           <MilestoneForm
             defaultValues={emptyMilestoneFormValues}
-            submitLabel="Create"
+            submitLabel={t('common.create')}
             onSubmit={async (values) => {
-              await create.mutateAsync(values); // throws ApiError -> shown by the form
-              await navigate({ to: '/milestones' });
+              const created = await create.mutateAsync(values); // throws ApiError -> shown by the form
+              await navigate({
+                to: '/milestones/$milestoneId',
+                params: { milestoneId: created.id },
+              });
             }}
           />
         </CardContent>

@@ -2,28 +2,40 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import {
   createMilestoneRequestSchema,
+  descriptionSchema,
+  fallbackErrorMap,
+  MILESTONE_CATEGORIES,
+  milestoneCategorySchema,
   type MilestoneResponse,
 } from '@time-capsule/shared';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { FieldErrorMessage } from '~/components/field-error-message';
+import { MarkdownEditor } from '~/components/markdown-editor';
 import { Alert, AlertDescription } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
 import {
   Field,
-  FieldError,
+  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from '~/components/ui/field';
 import { Input } from '~/components/ui/input';
-import { Textarea } from '~/components/ui/textarea';
+import { useTranslateMessage } from '~/i18n';
 import { applyApiErrors } from '~/lib/form-errors';
 
-// The shared request schema, adapted to what the inputs hold: a <textarea> can't hold null,
-// so the form keeps '' and submits null (the api would store '' as an empty description).
+// The shared request schema, adapted to what the inputs hold. Each replacement is built from
+// the shared piece, so its checks (the description's byte limit) still run on the client.
 const milestoneFormSchema = createMilestoneRequestSchema.extend({
-  description: z
-    .string()
-    .transform((value) => (value.trim() === '' ? null : value)),
+  // A <textarea> can't hold null: the form keeps '' and submits null.
+  description: descriptionSchema.transform((value) =>
+    value.trim() === '' ? null : value,
+  ),
+  // A <select> can't hold null either: the empty option means "no category".
+  category: z
+    .union([z.literal(''), milestoneCategorySchema])
+    .transform((value) => (value === '' ? null : value)),
 });
 
 /** What the inputs hold. */
@@ -35,6 +47,7 @@ export const emptyMilestoneFormValues: MilestoneFormValues = {
   date: '',
   title: '',
   description: '',
+  category: '',
 };
 
 export function toMilestoneFormValues(
@@ -44,23 +57,34 @@ export function toMilestoneFormValues(
     date: milestone.date,
     title: milestone.title,
     description: milestone.description ?? '',
+    category: milestone.category ?? '',
   };
 }
 
 type MilestoneFormProps = {
   defaultValues: MilestoneFormValues;
+  /** Translated text of the submit button. */
   submitLabel: string;
+  /** The milestone being edited: Cancel goes back to its page instead of the list. */
+  milestoneId?: number;
   /** Throw (e.g. an ApiError) to show the failure in the form. */
   onSubmit: (values: MilestoneFormOutput) => Promise<void>;
 };
 
+const selectClassName =
+  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30';
+
 export function MilestoneForm({
   defaultValues,
   submitLabel,
+  milestoneId,
   onSubmit,
 }: MilestoneFormProps) {
+  const { t } = useTranslation();
+  const translate = useTranslateMessage();
   const form = useForm<MilestoneFormValues, unknown, MilestoneFormOutput>({
-    resolver: zodResolver(milestoneFormSchema),
+    // fallbackErrorMap: an issue without its own key still gets one, never zod's English text.
+    resolver: zodResolver(milestoneFormSchema, { error: fallbackErrorMap }),
     defaultValues,
   });
 
@@ -79,9 +103,9 @@ export function MilestoneForm({
   return (
     <form onSubmit={submit} noValidate>
       <FieldGroup>
-        {serverError && (
+        {serverError?.message && (
           <Alert variant="destructive">
-            <AlertDescription>{serverError.message}</AlertDescription>
+            <AlertDescription>{translate(serverError.message)}</AlertDescription>
           </Alert>
         )}
         <Controller
@@ -89,7 +113,9 @@ export function MilestoneForm({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="milestone-date">Date</FieldLabel>
+              <FieldLabel htmlFor="milestone-date">
+                {t('milestones.form.date')}
+              </FieldLabel>
               {/* Native date input: gives YYYY-MM-DD or '', exactly the wire format. */}
               <Input
                 {...field}
@@ -97,7 +123,7 @@ export function MilestoneForm({
                 type="date"
                 aria-invalid={fieldState.invalid}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldErrorMessage error={fieldState.error} />
             </Field>
           )}
         />
@@ -106,14 +132,42 @@ export function MilestoneForm({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="milestone-title">Title</FieldLabel>
+              <FieldLabel htmlFor="milestone-title">
+                {t('milestones.form.title')}
+              </FieldLabel>
               <Input
                 {...field}
                 id="milestone-title"
                 autoComplete="off"
                 aria-invalid={fieldState.invalid}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldErrorMessage error={fieldState.error} />
+            </Field>
+          )}
+        />
+        <Controller
+          name="category"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="milestone-category">
+                {t('milestones.form.category')}
+              </FieldLabel>
+              {/* Native select: works with keyboards, screen readers and mobile pickers. */}
+              <select
+                {...field}
+                id="milestone-category"
+                className={selectClassName}
+                aria-invalid={fieldState.invalid}
+              >
+                <option value="">{t('milestones.form.noCategory')}</option>
+                {MILESTONE_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>
+                    {t(`category.${category}`)}
+                  </option>
+                ))}
+              </select>
+              <FieldErrorMessage error={fieldState.error} />
             </Field>
           )}
         />
@@ -123,15 +177,18 @@ export function MilestoneForm({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="milestone-description">
-                Description
+                {t('milestones.form.description')}
               </FieldLabel>
-              <Textarea
+              <MarkdownEditor
                 {...field}
                 id="milestone-description"
-                rows={4}
+                aria-describedby="milestone-description-hint"
                 aria-invalid={fieldState.invalid}
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldDescription id="milestone-description-hint">
+                {t('milestones.form.descriptionHint')}
+              </FieldDescription>
+              <FieldErrorMessage error={fieldState.error} />
             </Field>
           )}
         />
@@ -141,7 +198,13 @@ export function MilestoneForm({
             {submitLabel}
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/milestones">Cancel</Link>
+            {milestoneId === undefined ? (
+              <Link to="/milestones">{t('common.cancel')}</Link>
+            ) : (
+              <Link to="/milestones/$milestoneId" params={{ milestoneId }}>
+                {t('common.cancel')}
+              </Link>
+            )}
           </Button>
         </div>
       </FieldGroup>

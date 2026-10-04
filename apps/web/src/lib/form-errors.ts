@@ -1,12 +1,15 @@
 import { validationErrorBodySchema } from '@time-capsule/shared';
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
-import { ApiError } from './api-client';
+import { ApiError, toErrorMessage } from './api-client';
 
 /**
  * Shows a failed submit in a React Hook Form form. The api's 400 validation body (see
  * ZodValidationPipe) goes onto the matching fields; anything else (other statuses, network
  * and CORS failures, a malformed body) goes into errors.root.server. Field names match because
  * the form and the api validate with the same shared schema.
+ *
+ * Stores i18n keys or raw api text, never translated text: render with FieldErrorMessage /
+ * useTranslateMessage, so a language switch re-translates errors already on screen.
  */
 export function applyApiErrors<T extends FieldValues>(
   error: unknown,
@@ -39,8 +42,5 @@ export function applyApiErrors<T extends FieldValues>(
     }
   }
 
-  setError('root.server', {
-    type: 'server',
-    message: error instanceof Error ? error.message : String(error),
-  });
+  setError('root.server', { type: 'server', message: toErrorMessage(error) });
 }

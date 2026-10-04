@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MilestonesIndexRouteImport } from './routes/milestones/index'
+import { Route as MilestonesMilestoneIdRouteRouteImport } from './routes/milestones/$milestoneId/route'
 import { Route as MilestonesNewRouteImport } from './routes/milestones/new'
+import { Route as MilestonesMilestoneIdIndexRouteImport } from './routes/milestones/$milestoneId/index'
 import { Route as MilestonesMilestoneIdEditRouteImport } from './routes/milestones/$milestoneId/edit'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,56 +26,85 @@ const MilestonesIndexRoute = MilestonesIndexRouteImport.update({
   path: '/milestones/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MilestonesMilestoneIdRouteRoute =
+  MilestonesMilestoneIdRouteRouteImport.update({
+    id: '/milestones/$milestoneId',
+    path: '/milestones/$milestoneId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const MilestonesNewRoute = MilestonesNewRouteImport.update({
   id: '/milestones/new',
   path: '/milestones/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MilestonesMilestoneIdIndexRoute =
+  MilestonesMilestoneIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => MilestonesMilestoneIdRouteRoute,
+  } as any)
 const MilestonesMilestoneIdEditRoute =
   MilestonesMilestoneIdEditRouteImport.update({
-    id: '/milestones/$milestoneId/edit',
-    path: '/milestones/$milestoneId/edit',
-    getParentRoute: () => rootRouteImport,
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => MilestonesMilestoneIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/milestones/$milestoneId': typeof MilestonesMilestoneIdRouteRouteWithChildren
   '/milestones/new': typeof MilestonesNewRoute
   '/milestones/': typeof MilestonesIndexRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/milestones/$milestoneId/': typeof MilestonesMilestoneIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/milestones/new': typeof MilestonesNewRoute
   '/milestones': typeof MilestonesIndexRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/milestones/$milestoneId': typeof MilestonesMilestoneIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/milestones/$milestoneId': typeof MilestonesMilestoneIdRouteRouteWithChildren
   '/milestones/new': typeof MilestonesNewRoute
   '/milestones/': typeof MilestonesIndexRoute
   '/milestones/$milestoneId/edit': typeof MilestonesMilestoneIdEditRoute
+  '/milestones/$milestoneId/': typeof MilestonesMilestoneIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/milestones/new' | '/milestones/' | '/milestones/$milestoneId/edit'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/milestones/new' | '/milestones' | '/milestones/$milestoneId/edit'
-  id:
-    | '__root__'
     | '/'
+    | '/milestones/$milestoneId'
     | '/milestones/new'
     | '/milestones/'
     | '/milestones/$milestoneId/edit'
+    | '/milestones/$milestoneId/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/milestones/new'
+    | '/milestones'
+    | '/milestones/$milestoneId/edit'
+    | '/milestones/$milestoneId'
+  id:
+    | '__root__'
+    | '/'
+    | '/milestones/$milestoneId'
+    | '/milestones/new'
+    | '/milestones/'
+    | '/milestones/$milestoneId/edit'
+    | '/milestones/$milestoneId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MilestonesMilestoneIdRouteRoute: typeof MilestonesMilestoneIdRouteRouteWithChildren
   MilestonesNewRoute: typeof MilestonesNewRoute
   MilestonesIndexRoute: typeof MilestonesIndexRoute
-  MilestonesMilestoneIdEditRoute: typeof MilestonesMilestoneIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MilestonesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/milestones/$milestoneId': {
+      id: '/milestones/$milestoneId'
+      path: '/milestones/$milestoneId'
+      fullPath: '/milestones/$milestoneId'
+      preLoaderRoute: typeof MilestonesMilestoneIdRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/milestones/new': {
       id: '/milestones/new'
       path: '/milestones/new'
@@ -99,21 +137,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MilestonesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/milestones/$milestoneId/': {
+      id: '/milestones/$milestoneId/'
+      path: '/'
+      fullPath: '/milestones/$milestoneId/'
+      preLoaderRoute: typeof MilestonesMilestoneIdIndexRouteImport
+      parentRoute: typeof MilestonesMilestoneIdRouteRoute
+    }
     '/milestones/$milestoneId/edit': {
       id: '/milestones/$milestoneId/edit'
-      path: '/milestones/$milestoneId/edit'
+      path: '/edit'
       fullPath: '/milestones/$milestoneId/edit'
       preLoaderRoute: typeof MilestonesMilestoneIdEditRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MilestonesMilestoneIdRouteRoute
     }
   }
 }
 
+interface MilestonesMilestoneIdRouteRouteChildren {
+  MilestonesMilestoneIdEditRoute: typeof MilestonesMilestoneIdEditRoute
+  MilestonesMilestoneIdIndexRoute: typeof MilestonesMilestoneIdIndexRoute
+}
+
+const MilestonesMilestoneIdRouteRouteChildren: MilestonesMilestoneIdRouteRouteChildren =
+  {
+    MilestonesMilestoneIdEditRoute: MilestonesMilestoneIdEditRoute,
+    MilestonesMilestoneIdIndexRoute: MilestonesMilestoneIdIndexRoute,
+  }
+
+const MilestonesMilestoneIdRouteRouteWithChildren =
+  MilestonesMilestoneIdRouteRoute._addFileChildren(
+    MilestonesMilestoneIdRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MilestonesMilestoneIdRouteRoute: MilestonesMilestoneIdRouteRouteWithChildren,
   MilestonesNewRoute: MilestonesNewRoute,
   MilestonesIndexRoute: MilestonesIndexRoute,
-  MilestonesMilestoneIdEditRoute: MilestonesMilestoneIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

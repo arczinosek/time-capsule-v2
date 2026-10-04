@@ -1,5 +1,6 @@
 import type { MilestoneResponse } from '@time-capsule/shared';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,15 +13,22 @@ import {
   AlertDialogTrigger,
 } from '~/components/ui/alert-dialog';
 import { Button } from '~/components/ui/button';
+import { useTranslateMessage } from '~/i18n';
+import { toErrorMessage } from '~/lib/api-client';
 import { useDeleteMilestone } from './queries';
 
 export function DeleteMilestoneButton({
   milestone,
+  onDeleted,
 }: {
   milestone: MilestoneResponse;
+  /** Called after a successful delete, e.g. to leave a page that shows this milestone. */
+  onDeleted?: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const remove = useDeleteMilestone();
+  const { t } = useTranslation();
+  const translate = useTranslateMessage();
 
   return (
     <AlertDialog
@@ -35,23 +43,29 @@ export function DeleteMilestoneButton({
         <Button
           variant="destructive"
           size="sm"
-          aria-label={`Delete ${milestone.title}`}
+          aria-label={t('milestones.deleteLabel', { title: milestone.title })}
         >
-          Delete
+          {t('common.delete')}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {milestone.title}?</AlertDialogTitle>
-          <AlertDialogDescription>This can't be undone.</AlertDialogDescription>
+          <AlertDialogTitle>
+            {t('milestones.deleteTitle', { title: milestone.title })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {t('milestones.deleteDescription')}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         {remove.error && (
           <p role="alert" className="text-sm text-destructive">
-            {remove.error.message}
+            {translate(toErrorMessage(remove.error))}
           </p>
         )}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={remove.isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={remove.isPending}>
+            {t('common.cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={remove.isPending}
@@ -59,10 +73,15 @@ export function DeleteMilestoneButton({
               // Radix closes on click; keep the dialog open until the delete has finished,
               // so the pending state and any error are visible.
               event.preventDefault();
-              remove.mutate(milestone.id, { onSuccess: () => setOpen(false) });
+              remove.mutate(milestone.id, {
+                onSuccess: async () => {
+                  setOpen(false);
+                  await onDeleted?.();
+                },
+              });
             }}
           >
-            Delete
+            {t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
