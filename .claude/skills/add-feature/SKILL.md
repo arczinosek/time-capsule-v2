@@ -162,7 +162,18 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
      (`~/components/ui/native-select`, `className="w-full"` since it wraps in a `w-fit` div) or native
      radios in a `FieldSet`; several rows use a checkbox list like `FamilyMemberPicker`, in a
      `FieldSet` whose legend names it. Markdown fields use `MarkdownEditor` with `markdown.hint`.
-5. **List, detail and other components**:
+5. **List, detail and other components** (look: CLAUDE.md "Theme & ornaments" and "Icons"):
+   - Every page starts with `PageHeading` (`~/components/page-heading`: the `<h1>`, lines under it
+     as `children`, buttons in `actions`). Detail pages: actions (edit with `IconEdit`, delete with
+     `IconDelete`) in the heading, then `<Markdown dropCap>`, an `<hr className="chronicle-divider" />`,
+     then `<section>`s with `h2`s. "New" buttons get `IconAdd`. Lists sit on `bg-card` with
+     `shadow-parchment`; photos in a `chronicle-frame`. Use the theme tokens (`text-primary`,
+     `text-brass-ink` for brass-coloured text, never `text-brass`) and engraved icons
+     (`createEngravedIcon`; an enum's icon map lives in the feature, like `categoryIcons`).
+   - A new **top-level** section is one more item in `components/app-nav.tsx` (keep three or four,
+     so the bottom bar fits 360 px; `alsoActiveOn` for related paths, like Places on
+     `/locations`), with a `nav.*` key in both locales. A secondary section goes in a sub-nav
+     like `PlacesSubnav`.
    - Give repeated buttons distinct accessible names
      (`aria-label={t('<feature>.deleteLabel', { title: x.title })}`). Screen readers and tests
      rely on them.
@@ -213,7 +224,7 @@ Reference: `apps/web/src/features/milestones/*`, `apps/web/src/routes/milestones
 
 ## 4. Web tests: `*.spec.tsx` next to the code
 
-Reference: `features/milestones/milestone-list.spec.tsx`, `milestone-form.spec.tsx`,
+Reference: `features/milestones/timeline.spec.tsx`, `milestone-detail.spec.tsx`, `milestone-form.spec.tsx`,
 `src/test/*`.
 
 - `const { user, router } = renderRoute('/<feature>/new')` renders the real router and
@@ -351,6 +362,25 @@ which also type-checks specs through `tsconfig.test.json`).
   - Web specs can't use MSW for the storage POST (its XHR interceptor can't read jsdom's
     `FormData`): stub `XMLHttpRequest` like `media-section.spec.tsx`, and pick a file the input's
     `accept` refuses with `renderRoute(path, { applyAccept: false })`.
+- **Theme and UI**:
+  - `pnpm --filter web exec shadcn add <name>` may rewrite `src/index.css` (re-add a `.dark`
+    block, a class-based `@custom-variant dark`, neutral `:root` values or Geist): review that diff
+    after every add and keep the chronicle tokens.
+  - `currentColor` inside an SVG `<pattern>` takes the colour where the pattern is defined, so a
+    shared sprite paints every icon's hatching in one colour. `createEngravedIcon` gives each
+    instance its own pattern (`useId`); don't hoist it.
+  - Leaflet's panes (z-index 400–1000) cover dialogs and the fixed bottom nav unless the map frame
+    is its own stacking context: `relative isolate z-0` (`lazy-maps.tsx` has it). Any other heavy
+    widget with z-indexes needs the same.
+  - In-page jumps (year nav, skip link) must not change the URL hash: that is a router
+    navigation, which re-runs the loader and refetches. `preventDefault`, then
+    `scrollIntoView`/`focus`.
+  - Vitest loads no CSS: never render a mobile and a desktop copy of the same thing (both would be
+    in the DOM, doubling every query match). One element, restyled at `md:`.
+  - A Dialog opened without a `DialogTrigger` (one lightbox for many thumbnails) gets no focus
+    return from Radix: remember the opener from the click (`event.currentTarget`, not
+    `document.activeElement`: Safari doesn't focus a button on click) and focus it in
+    `onCloseAutoFocus` (see `media-gallery.tsx` and `media-lightbox.tsx`).
 - **Web build order** is `vite build && tsc -b`, because the router plugin must write
   `routeTree.gen.ts` before the type-check.
 - **Git**: stage nothing unless the user asks. `git mv` / `git rm --cached` touch the index, so

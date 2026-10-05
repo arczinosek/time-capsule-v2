@@ -7,8 +7,10 @@ import { server } from './server';
 // import location-map itself, or the mock doesn't apply.
 vi.mock('~/features/locations/location-map', () => import('./location-map.mock'));
 
-// jsdom doesn't implement scrolling; the router's scroll restoration calls it on navigation.
+// jsdom doesn't implement scrolling: the router's scroll restoration calls scrollTo on
+// navigation, the timeline's year nav calls scrollIntoView.
 window.scrollTo = () => {};
+Element.prototype.scrollIntoView = () => {};
 
 // Specs read in English. A Polish case calls `await setLanguage('pl')` before renderRoute.
 // Reset in beforeEach (not afterEach), so it never re-renders a tree that is still mounted.

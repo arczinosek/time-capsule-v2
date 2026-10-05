@@ -1,13 +1,23 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+/* All three cover latin-ext (Polish); unicode-range loads only the subsets a page uses. */
+@import "@fontsource-variable/eb-garamond";
+@import "@fontsource-variable/eb-garamond/wght-italic.css";
+@import "@fontsource-variable/cinzel";
+@import "@fontsource/pirata-one/400.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark ("candlelight") follows the system setting; there is no .dark class and no toggle. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'EB Garamond Variable', 'EB Garamond', Georgia, serif;
+    /* Restyles every shadcn title (Card, Dialog, AlertDialog) too. */
+    --font-heading: 'Cinzel Variable', 'Cinzel', 'EB Garamond Variable', Georgia, serif;
+    --font-initial: 'Pirata One', 'Cinzel Variable', Georgia, serif;
+    /* Ornaments only (2.2:1 on parchment): never text. Text in brass is brass-ink. */
+    --color-brass: var(--brass);
+    --color-brass-ink: var(--brass-ink);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,100 +56,198 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --shadow-parchment: 0 1px 0 var(--border), 0 3px 8px var(--parchment-shadow);
 }
 
+/* Light parchment. Contrast against --background (WCAG 2): foreground 12.7:1, muted-foreground
+   5.7:1, primary 6.9:1, brass-ink 5.3:1, destructive 5.7:1, input 3.2:1 (component boundary),
+   ring 5.3:1. border (1.6:1) and brass (2.2:1) are decorative only. */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    color-scheme: light;
+    --radius: 0.25rem;
+    --background: oklch(0.95 0.03 85);
+    --foreground: oklch(0.28 0.04 50);
+    --card: oklch(0.97 0.022 85);
+    --card-foreground: oklch(0.28 0.04 50);
+    --popover: oklch(0.97 0.022 85);
+    --popover-foreground: oklch(0.28 0.04 50);
+    --primary: oklch(0.45 0.13 30);
+    --primary-foreground: oklch(0.97 0.02 85);
+    --secondary: oklch(0.90 0.04 80);
+    --secondary-foreground: oklch(0.28 0.04 50);
+    --muted: oklch(0.91 0.035 82);
+    --muted-foreground: oklch(0.48 0.045 55);
+    --accent: oklch(0.89 0.05 80);
+    --accent-foreground: oklch(0.28 0.04 50);
+    --destructive: oklch(0.50 0.18 28);
+    --border: oklch(0.80 0.04 75);
+    --input: oklch(0.62 0.05 65);
+    --ring: oklch(0.50 0.10 65);
+    --brass: oklch(0.72 0.11 80);
+    --brass-ink: oklch(0.50 0.10 65);
+    --seal: oklch(0.45 0.15 25);
+    --seal-foreground: oklch(0.97 0.02 85);
+    --chart-1: oklch(0.45 0.13 30);
+    --chart-2: oklch(0.50 0.10 65);
+    --chart-3: oklch(0.72 0.11 80);
+    --chart-4: oklch(0.48 0.045 55);
+    --chart-5: oklch(0.28 0.04 50);
+    --sidebar: oklch(0.97 0.022 85);
+    --sidebar-foreground: oklch(0.28 0.04 50);
+    --sidebar-primary: oklch(0.45 0.13 30);
+    --sidebar-primary-foreground: oklch(0.97 0.02 85);
+    --sidebar-accent: oklch(0.89 0.05 80);
+    --sidebar-accent-foreground: oklch(0.28 0.04 50);
+    --sidebar-border: oklch(0.80 0.04 75);
+    --sidebar-ring: oklch(0.50 0.10 65);
+    --parchment-shadow: oklch(0.25 0.04 50 / 0.14);
+    /* Paper grain: feTurbulence noise tinted sepia, tiled. */
+    --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .25 0 0 0 0 .14 0 0 0 .10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --paper-vignette: oklch(0.60 0.06 60 / 0.22);
+    /* Masks (shape only; the colour is the element's background). */
+    --fleuron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M20 3l4 7-4 7-4-7z'/%3E%3Cpath d='M15 10c-3-4-8-5-12-2 3 0 5 1 6 2-1 1-3 2-6 2 4 3 9 2 12-2z'/%3E%3Cpath d='M25 10c3-4 8-5 12-2-3 0-5 1-6 2 1 1 3 2 6 2-4 3-9 2-12-2z'/%3E%3C/svg%3E");
+    --corner-flourish: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 15V3a2 2 0 0 1 2-2h12v1.6H3.4a.8.8 0 0 0-.8.8V15z'/%3E%3Ccircle cx='6' cy='6' r='1.6'/%3E%3C/svg%3E");
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+/* Candlelight. Against --background: foreground 13.5:1, muted-foreground 7.8:1, primary 7.8:1,
+   brass-ink 9.0:1, destructive 6.3:1; input 3.4:1 against --card. */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --background: oklch(0.20 0.02 60);
+        --foreground: oklch(0.90 0.03 85);
+        --card: oklch(0.24 0.022 60);
+        --card-foreground: oklch(0.90 0.03 85);
+        --popover: oklch(0.24 0.022 60);
+        --popover-foreground: oklch(0.90 0.03 85);
+        --primary: oklch(0.74 0.11 75);
+        --primary-foreground: oklch(0.20 0.02 60);
+        --secondary: oklch(0.30 0.025 60);
+        --secondary-foreground: oklch(0.90 0.03 85);
+        --muted: oklch(0.28 0.02 60);
+        --muted-foreground: oklch(0.74 0.04 75);
+        --accent: oklch(0.32 0.03 65);
+        --accent-foreground: oklch(0.90 0.03 85);
+        --destructive: oklch(0.70 0.17 30);
+        --border: oklch(0.36 0.03 60);
+        --input: oklch(0.55 0.04 65);
+        --ring: oklch(0.74 0.11 75);
+        --brass: oklch(0.66 0.10 80);
+        --brass-ink: oklch(0.78 0.09 80);
+        --seal: oklch(0.45 0.14 28);
+        --seal-foreground: oklch(0.92 0.03 85);
+        --chart-1: oklch(0.74 0.11 75);
+        --chart-2: oklch(0.70 0.17 30);
+        --chart-3: oklch(0.66 0.10 80);
+        --chart-4: oklch(0.74 0.04 75);
+        --chart-5: oklch(0.90 0.03 85);
+        --sidebar: oklch(0.24 0.022 60);
+        --sidebar-foreground: oklch(0.90 0.03 85);
+        --sidebar-primary: oklch(0.74 0.11 75);
+        --sidebar-primary-foreground: oklch(0.20 0.02 60);
+        --sidebar-accent: oklch(0.32 0.03 65);
+        --sidebar-accent-foreground: oklch(0.90 0.03 85);
+        --sidebar-border: oklch(0.36 0.03 60);
+        --sidebar-ring: oklch(0.74 0.11 75);
+        --parchment-shadow: oklch(0.05 0.02 50 / 0.5);
+        --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .9 0 0 0 0 .7 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        --paper-vignette: oklch(0.08 0.02 50 / 0.45);
+    }
+}
+
+/* Unlayered on purpose: it beats the utilities layer, so it overrides `outline-none` in the
+   vendored ui/ components. ring/50 measures 2.1:1 on parchment; a solid --ring outline 5.3:1.
+   tabindex="-1" targets (<main>, year headings) are focused by script, not reached by Tab. */
+:where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
+  }
   html {
-    @apply font-sans;
+    @apply bg-background font-sans;
+    font-variant-numeric: oldstyle-nums;
+    /* Keeps a focused or scrolled-to element clear of the sticky year heading (about 3.4rem) and,
+       on phones, of the fixed bottom navigation (3.5rem + border + the home indicator area). */
+    scroll-padding-block: 3.5rem calc(4.5rem + env(safe-area-inset-bottom));
+  }
+  @media (width >= 48rem) {
+    html {
+      scroll-padding-bottom: 0;
     }
+  }
+  body {
+    @apply text-foreground;
+    position: relative;
+    isolation: isolate;
+    min-height: 100svh;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    background: var(--background) var(--paper-grain) repeat;
+    background-size: 200px;
+  }
+  /* The vignette: candle-darkened page edges, under the content. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 35%, transparent 55%, var(--paper-vignette));
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  time,
+  .tabular {
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  /* Texture and vignette are decoration: drop them when the reader asks for plainer pages. */
+  @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+    body {
+      background-image: none;
+    }
+    body::before {
+      display: none;
+    }
+  }
 }
 
-/* Rendered Markdown (~/components/markdown). Tailwind's preflight strips list bullets, heading
-   sizes and the like, so put back what user-written stories use. Built from theme tokens. */
+/* Ornaments. Rendered Markdown (~/components/markdown) gets .chronicle-prose: Tailwind's
+   preflight strips list bullets, heading sizes and the like, so put back what stories use. */
 @layer components {
   .chronicle-prose {
+    max-width: 65ch;
     overflow-wrap: anywhere;
+    hyphens: auto;
+    text-wrap: pretty;
   }
   .chronicle-prose > * + * {
     @apply mt-3;
   }
   .chronicle-prose :is(h2, h3, h4, h5, h6) {
-    @apply font-heading font-semibold leading-snug;
+    @apply font-heading font-semibold leading-snug text-primary;
   }
   .chronicle-prose h2 {
     @apply text-xl;
@@ -160,10 +268,8 @@
     @apply list-decimal pl-6;
   }
   .chronicle-prose blockquote {
-    @apply border-l-2 pl-4 italic text-muted-foreground;
-  }
-  .chronicle-prose hr {
-    @apply border-border;
+    @apply pl-4 italic text-muted-foreground;
+    border-left: 2px solid var(--brass);
   }
   .chronicle-prose code {
     @apply rounded-sm bg-muted px-1 font-mono text-[0.9em];
@@ -173,5 +279,209 @@
   }
   .chronicle-prose pre code {
     @apply bg-transparent p-0;
+  }
+
+  /* An illuminated initial on long stories. initial-letter (Safari, Chrome) aligns it to the
+     lines; elsewhere a float. CSS only: screen readers read plain text. */
+  .drop-cap > p:first-child::first-letter {
+    float: left;
+    padding: 0.08em 0.12em 0 0;
+    font-family: var(--font-initial);
+    font-size: 3.6em;
+    line-height: 0.8;
+    color: var(--primary);
+  }
+  @supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
+    .drop-cap > p:first-child::first-letter {
+      float: none;
+      padding: 0 0.12em 0 0;
+      font-size: inherit;
+      line-height: inherit;
+      -webkit-initial-letter: 3;
+      initial-letter: 3;
+    }
+  }
+
+  /* A brass rule broken by a fleuron. */
+  .chronicle-divider,
+  .chronicle-prose hr {
+    position: relative;
+    height: 1.25rem;
+    margin-block: 1.5rem;
+    border: 0;
+    background:
+      linear-gradient(var(--brass), var(--brass)) left center / calc(50% - 1.75rem) 1px no-repeat,
+      linear-gradient(var(--brass), var(--brass)) right center / calc(50% - 1.75rem) 1px no-repeat;
+  }
+  .chronicle-divider::after,
+  .chronicle-prose hr::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 2.5rem;
+    height: 1.25rem;
+    margin: auto;
+    background: var(--brass);
+    mask: var(--fleuron) center / contain no-repeat;
+  }
+
+  /* A double brass frame with corner flourishes (photos). */
+  .chronicle-frame {
+    position: relative;
+    padding: 0.375rem;
+    background: var(--card);
+    border: 3px double var(--brass);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--brass) 40%, transparent),
+      0 2px 6px var(--parchment-shadow);
+  }
+  .chronicle-frame::before,
+  .chronicle-frame::after {
+    content: "";
+    position: absolute;
+    width: 1rem;
+    height: 1rem;
+    background: var(--brass);
+    mask: var(--corner-flourish) center / contain no-repeat;
+    pointer-events: none;
+  }
+  .chronicle-frame::before {
+    top: -0.4rem;
+    left: -0.4rem;
+  }
+  .chronicle-frame::after {
+    right: -0.4rem;
+    bottom: -0.4rem;
+    rotate: 180deg;
+  }
+
+  /* A wax seal carrying a glyph (milestone category). */
+  .seal {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle at 35% 30%,
+      color-mix(in oklch, var(--seal), white 15%),
+      var(--seal) 60%
+    );
+    color: var(--seal-foreground);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 3px var(--brass);
+  }
+
+  /* The timeline: a sticky year, then a rail of entries. Mobile: one rail on the left.
+     md+: the rail in the middle and entries alternating sides (DOM order stays chronological). */
+  .timeline-year {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding-block: 0.5rem;
+    border-bottom: 1px solid var(--brass);
+    background: var(--background);
+    font-size: 1.5rem;
+    color: var(--primary);
+    font-variant-numeric: lining-nums;
+  }
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: 1.25rem;
+    padding: 1rem 0 1.5rem 2.75rem;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: calc(1rem - 1px);
+    width: 2px;
+    background: linear-gradient(var(--brass), var(--brass-ink));
+  }
+  .timeline > li {
+    position: relative;
+  }
+  .timeline > li > .seal {
+    position: absolute;
+    top: 0.75rem;
+    left: -2.75rem;
+  }
+  @media (width >= 48rem) {
+    .timeline {
+      grid-template-columns: 1fr 3rem 1fr;
+      padding-left: 0;
+    }
+    .timeline::before {
+      left: calc(50% - 1px);
+    }
+    .timeline > li {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+    }
+    .timeline > li > .seal {
+      position: static;
+      grid-row: 1;
+      grid-column: 2;
+      justify-self: center;
+      margin-top: 0.75rem;
+    }
+    .timeline > li > article {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .timeline > li:nth-child(even) > article {
+      grid-column: 3;
+    }
+  }
+
+  /* Leaflet: sepia tiles to sit on parchment, and an attribution that stays readable. */
+  .leaflet-container {
+    font-family: var(--font-sans);
+  }
+  .leaflet-tile-pane {
+    filter: sepia(0.35) saturate(0.85);
+  }
+  .leaflet-container .leaflet-control-attribution {
+    background: color-mix(in oklch, var(--card) 92%, transparent);
+    color: var(--foreground);
+  }
+  .leaflet-container .leaflet-control-attribution a {
+    color: var(--primary);
+  }
+  @media (prefers-color-scheme: dark) {
+    .leaflet-tile-pane {
+      filter: sepia(0.4) brightness(0.75) contrast(1.1);
+    }
+  }
+}
+
+/* Windows high contrast: keep the shapes that carry meaning, in system colours. Masked and
+   painted pseudo-elements opt out of forcing, or their background would turn into Canvas. */
+@media (forced-colors: active) {
+  .timeline::before,
+  .chronicle-divider::after,
+  .chronicle-prose hr::after,
+  .chronicle-frame::before,
+  .chronicle-frame::after {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .seal {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .chronicle-frame {
+    border-color: CanvasText;
+  }
+  /* The current nav item is marked by colour and a bar, both forced away: underline it. */
+  nav [aria-current="page"] {
+    text-decoration: underline 2px;
+    text-underline-offset: 6px;
   }
 }

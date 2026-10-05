@@ -4,8 +4,8 @@ import {
   type ErrorComponentProps,
   type LinkProps,
 } from '@tanstack/react-router';
-import { LoaderCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { IconBack, IconHourglass } from '~/components/icons/action-icons';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
 import { useTranslateMessage } from '~/i18n';
@@ -22,7 +22,7 @@ export function RoutePending() {
       role="status"
       aria-label={t('common.loading')}
     >
-      <LoaderCircle className="size-6 animate-spin" />
+      <IconHourglass className="size-7 text-brass-ink motion-safe:animate-pulse" />
     </div>
   );
 }
@@ -60,10 +60,13 @@ export function NotFound({
   label: string;
 }) {
   return (
-    <div className="space-y-4">
-      <p>{message}</p>
+    <div className="space-y-4 py-6">
+      <p className="text-lg">{message}</p>
       <Button variant="outline" asChild>
-        <Link to={to}>{label}</Link>
+        <Link to={to}>
+          <IconBack />
+          {label}
+        </Link>
       </Button>
     </div>
   );

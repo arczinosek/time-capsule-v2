@@ -1,7 +1,7 @@
 import type { LocationResponse } from '@time-capsule/shared';
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconAdd } from '~/components/icons/action-icons';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -32,7 +32,7 @@ export function CreateLocationDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
-          <Plus aria-hidden="true" />
+          <IconAdd />
           {t('locations.new')}
         </Button>
       </DialogTrigger>

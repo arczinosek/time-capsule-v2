@@ -16,7 +16,7 @@ describe('LanguageSwitcher', () => {
     const { user } = renderRoute('/milestones');
 
     expect(await screen.findByText('1 May 2024')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Milestones' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Chronicle' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('lang', 'en');
 
     await user.selectOptions(
@@ -25,7 +25,7 @@ describe('LanguageSwitcher', () => {
     );
 
     expect(await screen.findByText('1 maja 2024')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Wydarzenia' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Kronika' })).toBeInTheDocument();
     expect(screen.getByText(/Życie i wspomnienia/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Kapsuła czasu' })).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute('lang', 'pl');

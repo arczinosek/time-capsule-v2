@@ -1,7 +1,7 @@
 import type { MediaResponse, MediaTarget } from '@time-capsule/shared';
-import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconNext, IconPhoto, IconPrev } from '~/components/icons/action-icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,7 @@ import {
 import { Button } from '~/components/ui/button';
 import { toMediaErrorMessage } from './error-message';
 import { MediaError } from './media-error';
+import { MediaLightbox } from './media-lightbox';
 import { useUpdateOwnerMedia } from './queries';
 
 /** The photo, or a placeholder (with the same name) when its URL doesn't load. */
@@ -24,8 +25,8 @@ function MediaImage({ url, alt }: { url: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-md bg-muted p-2 text-center text-xs text-muted-foreground">
-        <ImageOff aria-hidden="true" className="size-6" />
+      <div className="flex size-full flex-col items-center justify-center gap-2 bg-muted p-2 text-center text-xs text-muted-foreground">
+        <IconPhoto className="size-6" />
         <span className="sr-only">{alt}</span>
         <span>{t('media.loadFailed')}</span>
       </div>
@@ -37,7 +38,7 @@ function MediaImage({ url, alt }: { url: string; alt: string }) {
       alt={alt}
       loading="lazy"
       decoding="async"
-      className="aspect-square w-full rounded-md bg-muted object-cover"
+      className="size-full bg-muted object-cover"
       onError={() => setFailed(true)}
     />
   );
@@ -138,6 +139,11 @@ export function MediaGallery({
 }) {
   const { t } = useTranslation();
   const move = useUpdateOwnerMedia(target);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // The thumbnail that opened the lightbox, and its position as a fallback when that element
+  // is gone by the time it closes (the set changed meanwhile).
+  const openerRef = useRef<{ element: HTMLElement; position: number } | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const mediaIds = media.map((item) => item.id);
 
   function moveBy(from: number, offset: -1 | 1) {
@@ -153,12 +159,24 @@ export function MediaGallery({
 
   return (
     <div className="space-y-2">
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <ul ref={listRef} className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {media.map((item, position) => {
           const index = position + 1;
           return (
             <li key={item.id} className="space-y-2">
-              <MediaImage url={item.url} alt={t('media.alt', { index, label })} />
+              {/* Opens the lightbox; the photo keeps its alt text inside. */}
+              <button
+                type="button"
+                className="chronicle-frame block aspect-square w-full cursor-zoom-in"
+                data-thumbnail=""
+                aria-label={t('lightbox.open', { index, label })}
+                onClick={(event) => {
+                  openerRef.current = { element: event.currentTarget, position };
+                  setOpenIndex(position);
+                }}
+              >
+                <MediaImage url={item.url} alt={t('media.alt', { index, label })} />
+              </button>
               <div className="flex flex-wrap items-center gap-1">
                 <Button
                   type="button"
@@ -168,7 +186,7 @@ export function MediaGallery({
                   disabled={position === 0 || move.isPending || disabled}
                   onClick={() => moveBy(position, -1)}
                 >
-                  <ChevronLeft aria-hidden="true" />
+                  <IconPrev />
                 </Button>
                 <Button
                   type="button"
@@ -180,7 +198,7 @@ export function MediaGallery({
                   }
                   onClick={() => moveBy(position, 1)}
                 >
-                  <ChevronRight aria-hidden="true" />
+                  <IconNext />
                 </Button>
                 <RemoveMediaButton
                   target={target}
@@ -195,6 +213,21 @@ export function MediaGallery({
         })}
       </ul>
       {move.error && <MediaError error={toMediaErrorMessage(move.error)} />}
+      <MediaLightbox
+        media={media}
+        label={label}
+        index={openIndex}
+        onIndexChange={setOpenIndex}
+        onClose={() => setOpenIndex(null)}
+        returnFocusTo={() => {
+          const opener = openerRef.current;
+          if (!opener) return null;
+          if (opener.element.isConnected) return opener.element;
+          const thumbnails =
+            listRef.current?.querySelectorAll<HTMLElement>('[data-thumbnail]') ?? [];
+          return thumbnails[Math.min(opener.position, thumbnails.length - 1)];
+        }}
+      />
     </div>
   );
 }

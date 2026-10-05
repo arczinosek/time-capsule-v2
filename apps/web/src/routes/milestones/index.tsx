@@ -1,9 +1,11 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { IconAdd } from '~/components/icons/action-icons';
+import { PageHeading } from '~/components/page-heading';
 import { Button } from '~/components/ui/button';
-import { MilestoneList } from '~/features/milestones/milestone-list';
 import { milestoneQueries } from '~/features/milestones/queries';
+import { Timeline } from '~/features/milestones/timeline';
 
 export const Route = createFileRoute('/milestones/')({
   // Loaders only warm the cache; components read it with useSuspenseQuery.
@@ -20,13 +22,18 @@ function MilestonesPage() {
   const { t } = useTranslation();
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('milestones.title')}</h1>
-        <Button asChild>
-          <Link to="/milestones/new">{t('milestones.new')}</Link>
-        </Button>
-      </div>
-      <MilestoneList milestones={milestones} />
+      <PageHeading
+        title={t('timeline.title')}
+        actions={
+          <Button asChild>
+            <Link to="/milestones/new">
+              <IconAdd />
+              {t('milestones.new')}
+            </Link>
+          </Button>
+        }
+      />
+      <Timeline milestones={milestones} />
     </section>
   );
 }

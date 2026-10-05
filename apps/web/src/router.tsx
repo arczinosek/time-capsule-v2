@@ -23,6 +23,8 @@ export function createAppRouter({
     defaultErrorComponent: RouteError,
     // Unknown URLs, and ids rejected by a route's params.parse.
     defaultNotFoundComponent: PageNotFound,
+    // index.css sets scroll-behavior: smooth (for the year nav); a new page jumps to its top.
+    scrollRestorationBehavior: 'instant',
   });
 }
 

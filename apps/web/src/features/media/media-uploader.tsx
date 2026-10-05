@@ -1,7 +1,7 @@
 import { MEDIA_CONTENT_TYPES } from '@time-capsule/shared';
-import { X } from 'lucide-react';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconClose } from '~/components/icons/action-icons';
 import { Button } from '~/components/ui/button';
 import { Field, FieldDescription, FieldLabel } from '~/components/ui/field';
 import { Input } from '~/components/ui/input';
@@ -60,7 +60,7 @@ export function MediaUploader({
                     aria-label={t('media.dismissLabel', { name: item.name })}
                     onClick={() => onDismiss(item.id)}
                   >
-                    <X aria-hidden="true" />
+                    <IconClose />
                   </Button>
                 )}
               </div>

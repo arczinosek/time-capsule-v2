@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import type { PlaceDetailResponse } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
+import { IconEdit } from '~/components/icons/action-icons';
 import { Markdown } from '~/components/markdown';
+import { PageHeading } from '~/components/page-heading';
 import { Button } from '~/components/ui/button';
 import { LocationOnMap } from '~/features/locations/location-on-map';
 import { useLanguage } from '~/i18n';
@@ -18,15 +20,29 @@ export function PlaceDetail({
   const { t } = useTranslation();
   const language = useLanguage();
   return (
-    <article className="space-y-6">
-      <h1 className="text-2xl font-semibold">{place.name}</h1>
+    <article className="mx-auto max-w-3xl space-y-6">
+      <PageHeading
+        title={place.name}
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/places/$placeId/edit" params={{ placeId: place.id }}>
+                <IconEdit />
+                {t('common.edit')}
+              </Link>
+            </Button>
+            <DeletePlaceButton place={place} onDeleted={onDeleted} />
+          </>
+        }
+      />
       {place.description ? (
-        <Markdown>{place.description}</Markdown>
+        <Markdown dropCap>{place.description}</Markdown>
       ) : (
         <p className="text-muted-foreground">{t('places.noDescription')}</p>
       )}
+      <hr className="chronicle-divider" />
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('places.form.location')}</h2>
+        <h2 className="text-lg text-primary">{t('places.form.location')}</h2>
         {place.location ? (
           <LocationOnMap location={place.location} />
         ) : (
@@ -34,7 +50,7 @@ export function PlaceDetail({
         )}
       </section>
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('places.milestones')}</h2>
+        <h2 className="text-lg text-primary">{t('places.milestones')}</h2>
         {place.milestones.length > 0 ? (
           <ul className="space-y-1">
             {place.milestones.map((milestone) => (
@@ -53,7 +69,7 @@ export function PlaceDetail({
                   {milestone.title}
                 </Link>
                 {milestone.category && (
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-brass-ink">
                     {` · ${t(`category.${milestone.category}`)}`}
                   </span>
                 )}
@@ -64,14 +80,6 @@ export function PlaceDetail({
           <p className="text-muted-foreground">{t('places.noMilestones')}</p>
         )}
       </section>
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/places/$placeId/edit" params={{ placeId: place.id }}>
-            {t('common.edit')}
-          </Link>
-        </Button>
-        <DeletePlaceButton place={place} onDeleted={onDeleted} />
-      </div>
     </article>
   );
 }

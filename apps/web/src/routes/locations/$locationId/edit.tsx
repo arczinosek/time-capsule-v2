@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { PageHeading } from '~/components/page-heading';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import {
@@ -24,8 +25,8 @@ function EditLocationPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <h1 className="text-xl font-semibold">{t('locations.edit')}</h1>
+    <section className="mx-auto max-w-2xl space-y-6">
+      <PageHeading title={t('locations.edit')} />
       <Card>
         <CardContent>
           <LocationForm

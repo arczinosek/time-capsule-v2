@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: the bottom navigation pads itself with env(safe-area-inset-bottom). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Native controls and scrollbars follow the parchment / candlelight theme (index.css). -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f8edd8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1d140d" media="(prefers-color-scheme: dark)" />
     <title>Time Capsule</title>
   </head>
   <body>
