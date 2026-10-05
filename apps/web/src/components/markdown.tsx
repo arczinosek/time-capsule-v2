@@ -8,14 +8,26 @@ const MarkdownRenderer = lazy(() =>
   })),
 );
 
-/** Renders user-written Markdown safely. The only way to show Markdown in the app. */
+/** Stories at least this long open with an illuminated initial (`dropCap`). */
+const DROP_CAP_MIN_LENGTH = 120;
+
+/**
+ * Renders user-written Markdown safely. The only way to show Markdown in the app. `dropCap`
+ * (detail pages) gives a long enough story a drop cap; short texts would look top-heavy.
+ */
 export function Markdown({
   children,
-  className,
+  className: classNameProp,
+  dropCap = false,
 }: {
   children: string;
   className?: string;
+  dropCap?: boolean;
 }) {
+  const className = cn(
+    dropCap && children.length >= DROP_CAP_MIN_LENGTH && 'drop-cap',
+    classNameProp,
+  );
   return (
     <Suspense
       // Until the chunk arrives, the raw text (never an empty gap), styled like the result.

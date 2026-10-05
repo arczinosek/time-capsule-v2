@@ -13,6 +13,9 @@ type Translation<Source, Forms extends PluralSuffix> = Record<
 export const pl = {
   'app.name': 'Kapsuła czasu',
   'language.label': 'Język',
+  'nav.main': 'Nawigacja główna',
+  'nav.skipToContent': 'Przejdź do treści',
+  'nav.chronicle': 'Kronika',
   'nav.familyMembers': 'Rodzina',
   'nav.places': 'Miejsca',
 
@@ -138,14 +141,30 @@ export const pl = {
     'Nie można połączyć się z magazynem plików. Czy działa i czy jego CORS zezwala na adres tej strony?',
   'media.upload.failed': 'Magazyn plików odrzucił plik ({{code}}).',
 
+  // --- lightbox (an enlarged photo) ---
+  'lightbox.open': 'Powiększ zdjęcie {{index}}: {{label}}',
+  'lightbox.title': 'Zdjęcie {{current}} z {{total}}: {{label}}',
+  'lightbox.counter': '{{current}} / {{total}}',
+  'lightbox.previous': 'Poprzednie zdjęcie',
+  'lightbox.next': 'Następne zdjęcie',
+  'lightbox.close': 'Zamknij',
+
+  // --- timeline (/milestones) ---
+  'timeline.title': 'Kronika',
+  'timeline.yearNav': 'Przejdź do roku',
+  'timeline.familyMembers': 'Uczestnicy: {{names}}',
+  'timeline.moreFamilyMembers': 'i jeszcze {{count}}',
+  'timeline.photos_one': '{{count}} zdjęcie',
+  'timeline.photos_few': '{{count}} zdjęcia',
+  'timeline.photos_many': '{{count}} zdjęć',
+  'timeline.photos_other': '{{count}} zdjęcia',
+
   // --- milestones ---
-  'milestones.title': 'Wydarzenia',
   'milestones.new': 'Nowe wydarzenie',
   'milestones.edit': 'Edytuj wydarzenie',
   'milestones.empty': 'Nie ma jeszcze żadnych wydarzeń.',
   'milestones.notFound': 'Nie znaleziono wydarzenia.',
   'milestones.backToList': 'Wróć do wydarzeń',
-  'milestones.editLabel': 'Edytuj {{title}}',
   'milestones.deleteLabel': 'Usuń {{title}}',
   'milestones.deleteTitle': 'Usunąć „{{title}}”?',
   'milestones.deleteDescription': 'Tej operacji nie można cofnąć.',

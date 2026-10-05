@@ -5,6 +5,7 @@ import { placeQueries } from '~/features/places/queries';
 import { setLanguage } from '~/i18n';
 import {
   buildFamilyMemberDetail,
+  buildMedia,
   buildMilestone,
   buildPlaceDetail,
 } from '~/test/fixtures';
@@ -183,6 +184,63 @@ describe('/milestones/$milestoneId (milestone page)', () => {
     expect(
       screen.queryByRole('heading', { name: 'Gdzie' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens a long story with a drop cap, and a short one without', async () => {
+    const long = `Łukasz ${'walked to the river and back again. '.repeat(4)}`;
+    server.use(
+      http.get(apiUrl('/milestones/7'), () =>
+        HttpResponse.json(buildMilestone({ id: 7, description: long })),
+      ),
+      http.get(apiUrl('/milestones/8'), () =>
+        HttpResponse.json(
+          buildMilestone({ id: 8, title: 'Quiet day', description: 'Short.' }),
+        ),
+      ),
+    );
+    const { router } = renderRoute('/milestones/7');
+
+    const story = await screen.findByText(long.trim(), { selector: 'p' });
+    expect(story.closest('.chronicle-prose')).toHaveClass('drop-cap');
+
+    await router.navigate({
+      to: '/milestones/$milestoneId',
+      params: { milestoneId: 8 },
+    });
+
+    const short = await screen.findByText('Short.', { selector: 'p' });
+    expect(short.closest('.chronicle-prose')).not.toHaveClass('drop-cap');
+  });
+
+  it('enlarges a photo from its thumbnail and returns focus there', async () => {
+    server.use(
+      http.get(apiUrl('/milestones/7'), () =>
+        HttpResponse.json(
+          buildMilestone({
+            id: 7,
+            title: 'Seaside trip',
+            media: [buildMedia({ id: 1 }), buildMedia({ id: 2 })],
+          }),
+        ),
+      ),
+    );
+    const { user } = renderRoute('/milestones/7');
+
+    const thumbnail = await screen.findByRole('button', {
+      name: 'Enlarge photo 2: Seaside trip',
+    });
+    await user.click(thumbnail);
+
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Photo 2 of 2: Seaside trip',
+    });
+    expect(
+      within(dialog).getByRole('img', { name: 'Photo 2: Seaside trip' }),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(thumbnail).toHaveFocus();
   });
 
   it('says when there is no description', async () => {

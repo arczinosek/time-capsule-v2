@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { PageHeading } from '~/components/page-heading';
 import { Card, CardContent } from '~/components/ui/card';
 import {
   emptyFamilyMemberFormValues,
@@ -25,8 +26,8 @@ function NewFamilyMemberPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   return (
-    <section className="space-y-6">
-      <h1 className="text-xl font-semibold">{t('familyMembers.new')}</h1>
+    <section className="mx-auto max-w-2xl space-y-6">
+      <PageHeading title={t('familyMembers.new')} />
       <Card>
         <CardContent>
           <FamilyMemberForm

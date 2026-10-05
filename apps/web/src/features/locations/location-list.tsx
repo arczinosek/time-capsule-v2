@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { LocationResponse } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
+import { IconEdit } from '~/components/icons/action-icons';
 import { Button } from '~/components/ui/button';
 import { useLanguage } from '~/i18n';
 import { formatCoordinates } from './coordinates';
@@ -14,7 +15,7 @@ export function LocationList({ locations }: { locations: LocationResponse[] }) {
     return <p className="text-muted-foreground">{t('locations.empty')}</p>;
   }
   return (
-    <ul className="divide-y rounded-xl border">
+    <ul className="divide-y rounded-sm bg-card shadow-parchment ring-1 ring-border">
       {locations.map((location) => (
         <li
           key={location.id}
@@ -25,7 +26,7 @@ export function LocationList({ locations }: { locations: LocationResponse[] }) {
             <Link
               to="/locations/$locationId/edit"
               params={{ locationId: location.id }}
-              className="font-medium hover:underline"
+              className="font-medium underline-offset-4 hover:underline"
             >
               {location.name}
             </Link>
@@ -52,6 +53,7 @@ export function LocationList({ locations }: { locations: LocationResponse[] }) {
                 params={{ locationId: location.id }}
                 aria-label={t('locations.editLabel', { name: location.name })}
               >
+                <IconEdit />
                 {t('common.edit')}
               </Link>
             </Button>

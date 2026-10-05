@@ -5,12 +5,15 @@ import {
   type FamilyMemberSummary,
 } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
+import { IconEdit } from '~/components/icons/action-icons';
 import { Markdown } from '~/components/markdown';
+import { PageHeading } from '~/components/page-heading';
 import { Button } from '~/components/ui/button';
 import { MediaSection } from '~/features/media/media-section';
 import { useLanguage } from '~/i18n';
 import { formatDate } from '~/lib/dates';
 import { DeleteFamilyMemberButton } from './delete-family-member-button';
+import { familyMemberKindIcons } from './kind-icons';
 import { LifeDates } from './life-dates';
 
 function FamilyMemberLink({ familyMember }: { familyMember: FamilyMemberSummary }) {
@@ -34,11 +37,32 @@ export function FamilyMemberDetail({
 }) {
   const { t } = useTranslation();
   const language = useLanguage();
+  const { description } = familyMember;
+  const KindIcon = familyMemberKindIcons[familyMember.kind];
   return (
-    <article className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">{familyMember.name}</h1>
-        <p className="text-sm text-muted-foreground">
+    <article className="mx-auto max-w-3xl space-y-6">
+      <PageHeading
+        title={familyMember.name}
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                to="/family-members/$familyMemberId/edit"
+                params={{ familyMemberId: familyMember.id }}
+              >
+                <IconEdit />
+                {t('common.edit')}
+              </Link>
+            </Button>
+            <DeleteFamilyMemberButton
+              familyMember={familyMember}
+              onDeleted={onDeleted}
+            />
+          </>
+        }
+      >
+        <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+          <KindIcon className="size-4 text-brass-ink" />
           {t(`familyMemberKind.${familyMember.kind}`)}
           {(familyMember.birthDate || familyMember.deathDate) && ' · '}
           <LifeDates
@@ -46,14 +70,15 @@ export function FamilyMemberDetail({
             deathDate={familyMember.deathDate}
           />
         </p>
-      </header>
-      {familyMember.description ? (
-        <Markdown>{familyMember.description}</Markdown>
+      </PageHeading>
+      {description ? (
+        <Markdown dropCap>{description}</Markdown>
       ) : (
         <p className="text-muted-foreground">{t('familyMembers.noDescription')}</p>
       )}
+      <hr className="chronicle-divider" />
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('familyMembers.parents')}</h2>
+        <h2 className="text-lg text-primary">{t('familyMembers.parents')}</h2>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
           <dt className="text-muted-foreground">{t('familyMembers.mother')}</dt>
           <dd>
@@ -74,7 +99,7 @@ export function FamilyMemberDetail({
         </dl>
       </section>
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('familyMembers.children')}</h2>
+        <h2 className="text-lg text-primary">{t('familyMembers.children')}</h2>
         {familyMember.children.length > 0 ? (
           <ul className="list-disc space-y-1 pl-5">
             {familyMember.children.map((child) => (
@@ -88,7 +113,7 @@ export function FamilyMemberDetail({
         )}
       </section>
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">{t('familyMembers.milestones')}</h2>
+        <h2 className="text-lg text-primary">{t('familyMembers.milestones')}</h2>
         {familyMember.milestones.length > 0 ? (
           <ul className="space-y-1">
             {familyMember.milestones.map((milestone) => (
@@ -121,20 +146,6 @@ export function FamilyMemberDetail({
         max={MAX_FAMILY_MEMBER_MEDIA}
         label={familyMember.name}
       />
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" asChild>
-          <Link
-            to="/family-members/$familyMemberId/edit"
-            params={{ familyMemberId: familyMember.id }}
-          >
-            {t('common.edit')}
-          </Link>
-        </Button>
-        <DeleteFamilyMemberButton
-          familyMember={familyMember}
-          onDeleted={onDeleted}
-        />
-      </div>
     </article>
   );
 }

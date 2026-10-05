@@ -1,6 +1,7 @@
 import type { LocationResponse } from '@time-capsule/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconDelete } from '~/components/icons/action-icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ export function DeleteLocationButton({ location }: { location: LocationResponse 
           size="sm"
           aria-label={t('locations.deleteLabel', { name: location.name })}
         >
+          <IconDelete />
           {t('common.delete')}
         </Button>
       </AlertDialogTrigger>

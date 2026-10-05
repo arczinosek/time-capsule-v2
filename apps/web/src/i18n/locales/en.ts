@@ -17,6 +17,9 @@ type RequiredKeys = Record<
 export const en = {
   'app.name': 'Time Capsule',
   'language.label': 'Language',
+  'nav.main': 'Main navigation',
+  'nav.skipToContent': 'Skip to content',
+  'nav.chronicle': 'Chronicle',
   'nav.familyMembers': 'Family',
   'nav.places': 'Places',
 
@@ -144,14 +147,28 @@ export const en = {
     "Cannot reach the file storage. Is it running, and does its CORS allow this page's origin?",
   'media.upload.failed': 'The file storage refused the file ({{code}}).',
 
+  // --- lightbox (an enlarged photo) ---
+  'lightbox.open': 'Enlarge photo {{index}}: {{label}}',
+  'lightbox.title': 'Photo {{current}} of {{total}}: {{label}}',
+  'lightbox.counter': '{{current}} / {{total}}',
+  'lightbox.previous': 'Previous photo',
+  'lightbox.next': 'Next photo',
+  'lightbox.close': 'Close',
+
+  // --- timeline (/milestones) ---
+  'timeline.title': 'Chronicle',
+  'timeline.yearNav': 'Jump to year',
+  'timeline.familyMembers': 'Participants: {{names}}',
+  'timeline.moreFamilyMembers': 'and {{count}} more',
+  'timeline.photos_one': '{{count}} photo',
+  'timeline.photos_other': '{{count}} photos',
+
   // --- milestones ---
-  'milestones.title': 'Milestones',
   'milestones.new': 'New milestone',
   'milestones.edit': 'Edit milestone',
   'milestones.empty': 'No milestones yet.',
   'milestones.notFound': 'Milestone not found.',
   'milestones.backToList': 'Back to milestones',
-  'milestones.editLabel': 'Edit {{title}}',
   'milestones.deleteLabel': 'Delete {{title}}',
   'milestones.deleteTitle': 'Delete {{title}}?',
   'milestones.deleteDescription': "This can't be undone.",

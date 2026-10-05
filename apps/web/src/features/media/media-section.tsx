@@ -42,10 +42,10 @@ export function MediaSection({
   return (
     <section aria-labelledby={headingId} className="space-y-3">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 id={headingId} className="text-lg font-semibold">
+        <h2 id={headingId} className="text-lg text-primary">
           {t('media.title')}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground tabular">
           {t('media.count', { count: media.length, max })}
         </p>
       </div>

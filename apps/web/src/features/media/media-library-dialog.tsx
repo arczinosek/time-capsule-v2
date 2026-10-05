@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import type { MediaResponse, MediaTarget } from '@time-capsule/shared';
-import { Images } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconPhoto } from '~/components/icons/action-icons';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -54,7 +54,7 @@ export function MediaLibraryDialog({
     >
       <DialogTrigger asChild>
         <Button type="button" variant="outline" disabled={disabled}>
-          <Images aria-hidden="true" />
+          <IconPhoto />
           {t('media.library')}
         </Button>
       </DialogTrigger>

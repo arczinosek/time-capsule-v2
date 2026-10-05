@@ -9,13 +9,13 @@ export function PlaceList({ places }: { places: PlaceResponse[] }) {
     return <p className="text-muted-foreground">{t('places.empty')}</p>;
   }
   return (
-    <ul className="divide-y rounded-xl border">
+    <ul className="divide-y rounded-sm bg-card shadow-parchment ring-1 ring-border">
       {places.map((place) => (
         <li key={place.id} className="space-y-0.5 px-4 py-3">
           <Link
             to="/places/$placeId"
             params={{ placeId: place.id }}
-            className="font-medium hover:underline"
+            className="font-medium underline-offset-4 hover:underline"
           >
             {place.name}
           </Link>

@@ -9,7 +9,7 @@ export function LanguageSwitcher() {
   const id = useId();
   return (
     <div className="flex items-center gap-1.5">
-      <Languages aria-hidden className="size-4 text-muted-foreground" />
+      <Languages aria-hidden className="size-4 text-brass-ink" />
       <label htmlFor={id} className="sr-only">
         {t('language.label')}
       </label>
@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
           const next = event.target.value;
           if (isLanguage(next)) void setLanguage(next);
         }}
-        className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-9 rounded-sm border border-input bg-card px-2 font-heading text-sm tracking-wide text-foreground"
       >
         {/* Endonyms: each language named in itself, so they are never translated. */}
         <option value="en" lang="en">
