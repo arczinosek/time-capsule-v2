@@ -16,11 +16,13 @@ import {
   type Transaction,
 } from '../database/database.types.js';
 import {
+  familyMemberMedia,
   familyMembers,
   milestoneFamilyMembers,
   milestones,
   type FamilyMember,
 } from '../database/schema.js';
+import { MediaService, type MediaRow } from '../media/media.service.js';
 import {
   milestoneSummaryColumns,
   type MilestoneSummaryRow,
@@ -35,6 +37,8 @@ export type FamilyMemberDetailRow = FamilyMember & {
   father: FamilyMemberSummaryRow | null;
   children: FamilyMemberSummaryRow[];
   milestones: MilestoneSummaryRow[];
+  /** Ready photos, in gallery order. */
+  media: MediaRow[];
 };
 
 type ParentIds = Pick<UpdateFamilyMemberRequest, 'motherId' | 'fatherId'>;
@@ -45,7 +49,10 @@ const [areParentsDistinct] = distinctParents;
 
 @Injectable()
 export class FamilyMembersService {
-  constructor(@Inject(DRIZZLE) private readonly db: Database) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: Database,
+    private readonly mediaService: MediaService,
+  ) {}
 
   findAll(): Promise<FamilyMember[]> {
     return this.db
@@ -68,36 +75,38 @@ export class FamilyMembersService {
     const parentIds = [motherId, fatherId].filter(
       (parentId) => parentId !== null,
     );
-    const [parents, children, memberMilestones] = await Promise.all([
-      parentIds.length === 0
-        ? Promise.resolve([])
-        : this.db
-            .select(familyMemberSummaryColumns)
-            .from(familyMembers)
-            .where(inArray(familyMembers.id, parentIds)),
-      this.db
-        .select(familyMemberSummaryColumns)
-        .from(familyMembers)
-        .where(
-          or(eq(familyMembers.motherId, id), eq(familyMembers.fatherId, id)),
-        )
-        // MySQL sorts NULL first: put children with an unknown birth date last.
-        .orderBy(
-          asc(isNull(familyMembers.birthDate)),
-          asc(familyMembers.birthDate),
-          asc(familyMembers.name),
-          asc(familyMembers.id),
-        ),
-      this.db
-        .select(milestoneSummaryColumns)
-        .from(milestoneFamilyMembers)
-        .innerJoin(
-          milestones,
-          eq(milestones.id, milestoneFamilyMembers.milestoneId),
-        )
-        .where(eq(milestoneFamilyMembers.familyMemberId, id))
-        .orderBy(asc(milestones.date), asc(milestones.id)),
-    ]);
+    const [parents, children, memberMilestones, memberMedia] =
+      await Promise.all([
+        parentIds.length === 0
+          ? Promise.resolve([])
+          : this.db
+              .select(familyMemberSummaryColumns)
+              .from(familyMembers)
+              .where(inArray(familyMembers.id, parentIds)),
+        this.db
+          .select(familyMemberSummaryColumns)
+          .from(familyMembers)
+          .where(
+            or(eq(familyMembers.motherId, id), eq(familyMembers.fatherId, id)),
+          )
+          // MySQL sorts NULL first: put children with an unknown birth date last.
+          .orderBy(
+            asc(isNull(familyMembers.birthDate)),
+            asc(familyMembers.birthDate),
+            asc(familyMembers.name),
+            asc(familyMembers.id),
+          ),
+        this.db
+          .select(milestoneSummaryColumns)
+          .from(milestoneFamilyMembers)
+          .innerJoin(
+            milestones,
+            eq(milestones.id, milestoneFamilyMembers.milestoneId),
+          )
+          .where(eq(milestoneFamilyMembers.familyMemberId, id))
+          .orderBy(asc(milestones.date), asc(milestones.id)),
+        this.mediaService.findForFamilyMember(id),
+      ]);
     const parent = (parentId: number | null) =>
       parents.find((row) => row.id === parentId) ?? null;
 
@@ -107,6 +116,7 @@ export class FamilyMembersService {
       father: parent(fatherId),
       children,
       milestones: memberMilestones,
+      media: memberMedia,
     };
   }
 
@@ -182,13 +192,42 @@ export class FamilyMembersService {
   }
 
   // Idempotent: deleting a missing family member is not an error, it just affects 0 rows.
-  // The foreign keys clear the children's parent ids and remove the milestone links.
+  // The foreign keys clear the children's parent ids and remove the milestone and photo links;
+  // photos linked nowhere else are deleted with them (rows here, objects after the commit).
   async remove(id: number): Promise<number> {
-    const [result] = await this.db
-      .delete(familyMembers)
-      .where(eq(familyMembers.id, id));
+    const { affectedRows, orphanKeys } = await this.db.transaction(
+      async (tx) => {
+        // Lock order as everywhere: the owner, then its links, then media (deleteOrphans).
+        const [owner] = await tx
+          .select({ id: familyMembers.id })
+          .from(familyMembers)
+          .where(eq(familyMembers.id, id))
+          .for('update');
 
-    return result.affectedRows;
+        if (!owner) return { affectedRows: 0, orphanKeys: [] };
+
+        // A locking read: see (and hold) the links as they are now, not as of a snapshot.
+        const links = await tx
+          .select({ mediaId: familyMemberMedia.mediaId })
+          .from(familyMemberMedia)
+          .where(eq(familyMemberMedia.familyMemberId, id))
+          .for('update');
+        const [result] = await tx
+          .delete(familyMembers)
+          .where(eq(familyMembers.id, id));
+
+        return {
+          affectedRows: result.affectedRows,
+          orphanKeys: await this.mediaService.deleteOrphans(
+            tx,
+            links.map(({ mediaId }) => mediaId),
+          ),
+        };
+      },
+    );
+
+    await this.mediaService.deleteObjects(orphanKeys);
+    return affectedRows;
   }
 
   /** Locks the parents FOR SHARE, so they can't be deleted before the transaction commits. */

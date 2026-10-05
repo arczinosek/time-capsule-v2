@@ -56,6 +56,21 @@ export const pl = {
   'validation.longitude.invalid': 'Podaj długość geograficzną od -180 do 180',
   'validation.location.notFound': 'Wybrana lokalizacja już nie istnieje',
   'validation.location.taken': 'Ta lokalizacja należy już do innego miejsca',
+  'validation.media.targetInvalid':
+    'Zdjęcia mogą należeć tylko do wydarzenia lub członka rodziny',
+  'validation.media.contentTypeInvalid':
+    'Dozwolone są tylko obrazy JPEG, PNG, WebP i GIF',
+  'validation.media.empty': 'Plik jest pusty',
+  'validation.media.tooLarge': 'Plik jest za duży (maks. 20 MB)',
+  'validation.media.capMilestone': 'Wydarzenie może mieć najwyżej 10 zdjęć',
+  'validation.media.capFamilyMember': 'Członek rodziny może mieć najwyżej 100 zdjęć',
+  'validation.media.notFound': 'Wybrane zdjęcie już nie istnieje',
+  'validation.media.notReady': 'Wybrane zdjęcie nie zostało jeszcze przesłane',
+  'validation.media.duplicate': 'Zdjęcie występuje na liście więcej niż raz',
+  'validation.media.uploadInvalid':
+    'Przesłany plik jest nieprawidłowy lub nie dotarł do magazynu plików',
+  'validation.media.stale':
+    'Zdjęcia zmieniły się w międzyczasie. Odświeżono, spróbuj ponownie.',
 
   // --- categories (slugs from @time-capsule/shared MILESTONE_CATEGORIES) ---
   'category.life_and_memory': 'Życie i wspomnienia',
@@ -86,10 +101,42 @@ export const pl = {
   'map.zoomOut': 'Oddal',
   'map.attribution':
     '&copy; <a href="https://www.openstreetmap.org/copyright">autorzy OpenStreetMap</a>',
+  'map.attributionPrefix':
+    '<a href="https://leafletjs.com" title="Biblioteka JavaScript do map interaktywnych">Leaflet</a>',
   'map.openInOsm': 'Otwórz w OpenStreetMap',
   'form.coordinates.latitude': 'Szerokość geograficzna',
   'form.coordinates.longitude': 'Długość geograficzna',
   'form.coordinates.hint': 'Stopnie dziesiętne, np. 50,061698. Kropka też działa.',
+
+  // --- media (photos) ---
+  'media.title': 'Zdjęcia',
+  'media.count': '{{count}} / {{max}}',
+  'media.empty': 'Brak zdjęć.',
+  'media.add': 'Dodaj zdjęcia',
+  'media.hint': 'JPEG, PNG, WebP lub GIF, do 20 MB każdy.',
+  'media.full': 'Osiągnięto limit zdjęć.',
+  'media.uploading': 'Przesyłanie: {{name}}',
+  'media.dismissLabel': 'Ukryj błąd pliku {{name}}',
+  'media.alt': 'Zdjęcie {{index}}: {{label}}',
+  'media.loadFailed': 'Nie można wczytać zdjęcia.',
+  'media.moveEarlier': 'Przesuń zdjęcie {{index}} wcześniej',
+  'media.moveLater': 'Przesuń zdjęcie {{index}} dalej',
+  'media.removeLabel': 'Usuń zdjęcie {{index}}',
+  'media.removeTitle': 'Usunąć to zdjęcie?',
+  'media.removeDescription':
+    'Zdjęcie zniknie z tego miejsca. Jeśli nie jest użyte nigdzie indziej, zostanie trwale usunięte.',
+  'media.remove': 'Usuń',
+  'media.library': 'Wybierz z biblioteki',
+  'media.libraryTitle': 'Biblioteka zdjęć',
+  'media.libraryDescription': 'Zdjęcia z całej kroniki. Wybierz jedno, aby je tu dodać.',
+  'media.libraryEmpty': 'Brak innych zdjęć w bibliotece.',
+  'media.libraryPick': 'Dodaj zdjęcie {{index}} z biblioteki',
+  'media.upload.tooLarge': 'Plik jest za duży (maks. 20 MB).',
+  'media.upload.empty': 'Plik jest pusty.',
+  'media.upload.expired': 'Link do przesyłania wygasł. Spróbuj ponownie.',
+  'media.upload.network':
+    'Nie można połączyć się z magazynem plików. Czy działa i czy jego CORS zezwala na adres tej strony?',
+  'media.upload.failed': 'Magazyn plików odrzucił plik ({{code}}).',
 
   // --- milestones ---
   'milestones.title': 'Wydarzenia',

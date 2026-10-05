@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { descriptionSchema, idSchema, isoDateSchema } from './common.js';
+import { mediaResponseSchema } from './media.js';
 import { messages } from './messages.js';
 import {
   familyMemberSummarySchema,
@@ -58,6 +59,8 @@ export const milestoneResponseSchema = z.object({
   location: locationSummarySchema.nullable(),
   /** Derived: the place that owns `location`, if any. */
   place: placeSummarySchema.nullable(),
+  /** Ready photos, in gallery order. */
+  media: z.array(mediaResponseSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

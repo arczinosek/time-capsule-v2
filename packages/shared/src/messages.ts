@@ -27,6 +27,18 @@ export const messages = {
   longitudeInvalid: 'validation.longitude.invalid',
   locationNotFound: 'validation.location.notFound',
   locationTaken: 'validation.location.taken',
+  // Media (photos). Messages have no parameters, so each cap has its own key.
+  mediaTargetInvalid: 'validation.media.targetInvalid',
+  mediaContentTypeInvalid: 'validation.media.contentTypeInvalid',
+  mediaEmpty: 'validation.media.empty',
+  mediaTooLarge: 'validation.media.tooLarge',
+  mediaCapMilestone: 'validation.media.capMilestone',
+  mediaCapFamilyMember: 'validation.media.capFamilyMember',
+  mediaNotFound: 'validation.media.notFound',
+  mediaNotReady: 'validation.media.notReady',
+  mediaDuplicate: 'validation.media.duplicate',
+  mediaUploadInvalid: 'validation.media.uploadInvalid',
+  mediaStale: 'validation.media.stale',
 } as const;
 
 export type MessageKey = (typeof messages)[keyof typeof messages];

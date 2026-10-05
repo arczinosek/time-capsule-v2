@@ -1,9 +1,10 @@
 import { Link } from '@tanstack/react-router';
-import type { MilestoneResponse } from '@time-capsule/shared';
+import { MAX_MILESTONE_MEDIA, type MilestoneResponse } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
 import { Markdown } from '~/components/markdown';
 import { Button } from '~/components/ui/button';
 import { LocationOnMap } from '~/features/locations/location-on-map';
+import { MediaSection } from '~/features/media/media-section';
 import { useLanguage } from '~/i18n';
 import { formatDate } from '~/lib/dates';
 import { DeleteMilestoneButton } from './delete-milestone-button';
@@ -70,6 +71,12 @@ export function MilestoneDetail({
           <LocationOnMap location={milestone.location} />
         </section>
       )}
+      <MediaSection
+        target={{ type: 'milestone', id: milestone.id }}
+        media={milestone.media}
+        max={MAX_MILESTONE_MEDIA}
+        label={milestone.title}
+      />
       <div className="flex gap-2">
         <Button variant="outline" size="sm" asChild>
           <Link

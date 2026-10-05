@@ -38,6 +38,20 @@ const DEFAULT_CENTER: L.LatLngTuple = [52.07, 19.48];
 const DEFAULT_ZOOM = 5;
 const POINT_ZOOM = 13;
 
+/**
+ * Leaflet puts its own credit in front of the attribution, with an English tooltip ("A
+ * JavaScript library for interactive maps"): replace it with the translated one.
+ */
+function AttributionPrefix() {
+  const { t } = useTranslation();
+  const map = useMap();
+  const prefix = t('map.attributionPrefix');
+  useEffect(() => {
+    map.attributionControl?.setPrefix(prefix);
+  }, [map, prefix]);
+  return null;
+}
+
 /** Tiles, translated zoom buttons and attribution: what every map here shows. */
 function BaseLayers({ zoom }: { zoom: boolean }) {
   const { t } = useTranslation();
@@ -45,6 +59,7 @@ function BaseLayers({ zoom }: { zoom: boolean }) {
   return (
     <>
       <TileLayer url={TILE_URL} maxZoom={19} attribution={t('map.attribution')} />
+      <AttributionPrefix />
       {/* Leaflet's titles are English and set once: re-create the control per language. */}
       {zoom && (
         <ZoomControl

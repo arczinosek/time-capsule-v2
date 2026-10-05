@@ -1,11 +1,13 @@
 import { Link } from '@tanstack/react-router';
-import type {
-  FamilyMemberDetailResponse,
-  FamilyMemberSummary,
+import {
+  MAX_FAMILY_MEMBER_MEDIA,
+  type FamilyMemberDetailResponse,
+  type FamilyMemberSummary,
 } from '@time-capsule/shared';
 import { useTranslation } from 'react-i18next';
 import { Markdown } from '~/components/markdown';
 import { Button } from '~/components/ui/button';
+import { MediaSection } from '~/features/media/media-section';
 import { useLanguage } from '~/i18n';
 import { formatDate } from '~/lib/dates';
 import { DeleteFamilyMemberButton } from './delete-family-member-button';
@@ -113,6 +115,12 @@ export function FamilyMemberDetail({
           </p>
         )}
       </section>
+      <MediaSection
+        target={{ type: 'family_member', id: familyMember.id }}
+        media={familyMember.media}
+        max={MAX_FAMILY_MEMBER_MEDIA}
+        label={familyMember.name}
+      />
       <div className="flex gap-2">
         <Button variant="outline" size="sm" asChild>
           <Link

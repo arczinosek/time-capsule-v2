@@ -60,6 +60,21 @@ export const en = {
   'validation.longitude.invalid': 'Enter a longitude from -180 to 180',
   'validation.location.notFound': 'The chosen location no longer exists',
   'validation.location.taken': 'This location already belongs to another place',
+  'validation.media.targetInvalid':
+    'Photos can belong to a milestone or a family member only',
+  'validation.media.contentTypeInvalid':
+    'Only JPEG, PNG, WebP and GIF images are allowed',
+  'validation.media.empty': 'The file is empty',
+  'validation.media.tooLarge': 'The file is too large (max 20 MB)',
+  'validation.media.capMilestone': 'A milestone can have at most 10 photos',
+  'validation.media.capFamilyMember': 'A family member can have at most 100 photos',
+  'validation.media.notFound': 'A chosen photo no longer exists',
+  'validation.media.notReady': 'A chosen photo has not finished uploading',
+  'validation.media.duplicate': 'A photo is listed more than once',
+  'validation.media.uploadInvalid':
+    'The uploaded file is invalid or did not reach the file storage',
+  'validation.media.stale':
+    'The photos changed in the meantime. Refreshed; please try again.',
 
   // --- categories (slugs from @time-capsule/shared MILESTONE_CATEGORIES) ---
   'category.life_and_memory': 'Life and memory',
@@ -91,10 +106,43 @@ export const en = {
   // HTML: Leaflet renders it in the attribution control. Keep the OSM copyright link.
   'map.attribution':
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  // HTML: Leaflet's own credit, in front of the attribution (its default title is English).
+  'map.attributionPrefix':
+    '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a>',
   'map.openInOsm': 'Open in OpenStreetMap',
   'form.coordinates.latitude': 'Latitude',
   'form.coordinates.longitude': 'Longitude',
   'form.coordinates.hint': 'Decimal degrees, e.g. 50.061698. A comma works too.',
+
+  // --- media (photos) ---
+  'media.title': 'Photos',
+  'media.count': '{{count}} / {{max}}',
+  'media.empty': 'No photos yet.',
+  'media.add': 'Add photos',
+  'media.hint': 'JPEG, PNG, WebP or GIF, up to 20 MB each.',
+  'media.full': 'The photo limit is reached.',
+  'media.uploading': 'Uploading {{name}}',
+  'media.dismissLabel': 'Dismiss the error for {{name}}',
+  'media.alt': 'Photo {{index}}: {{label}}',
+  'media.loadFailed': 'This photo cannot be loaded.',
+  'media.moveEarlier': 'Move photo {{index}} earlier',
+  'media.moveLater': 'Move photo {{index}} later',
+  'media.removeLabel': 'Remove photo {{index}}',
+  'media.removeTitle': 'Remove this photo?',
+  'media.removeDescription':
+    'It disappears from here. If nothing else uses it, it is deleted for good.',
+  'media.remove': 'Remove',
+  'media.library': 'Choose from the library',
+  'media.libraryTitle': 'Photo library',
+  'media.libraryDescription': 'Photos from the rest of the chronicle. Pick one to add it here.',
+  'media.libraryEmpty': 'No other photos in the library.',
+  'media.libraryPick': 'Add library photo {{index}}',
+  'media.upload.tooLarge': 'The file is too large (max 20 MB).',
+  'media.upload.empty': 'The file is empty.',
+  'media.upload.expired': 'The upload link expired. Try again.',
+  'media.upload.network':
+    "Cannot reach the file storage. Is it running, and does its CORS allow this page's origin?",
+  'media.upload.failed': 'The file storage refused the file ({{code}}).',
 
   // --- milestones ---
   'milestones.title': 'Milestones',

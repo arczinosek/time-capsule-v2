@@ -7,9 +7,13 @@ import { createAppRouter } from '~/router';
 
 /**
  * Renders the real app (route tree, loaders, providers) at `path` with a fresh cache.
- * Route components load lazily, so query with findBy* / waitFor.
+ * Route components load lazily, so query with findBy* / waitFor. `userOptions` go to
+ * userEvent.setup(), e.g. `{ applyAccept: false }` to pick a file the input's accept refuses.
  */
-export function renderRoute(path: string) {
+export function renderRoute(
+  path: string,
+  userOptions?: Parameters<typeof userEvent.setup>[0],
+) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -17,7 +21,7 @@ export function renderRoute(path: string) {
     queryClient,
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  const user = userEvent.setup();
+  const user = userEvent.setup(userOptions);
   const view = render(
     <AppProviders queryClient={queryClient} router={router} />,
   );

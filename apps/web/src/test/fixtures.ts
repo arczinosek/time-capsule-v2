@@ -2,12 +2,14 @@ import {
   familyMemberDetailResponseSchema,
   familyMemberResponseSchema,
   locationResponseSchema,
+  mediaResponseSchema,
   milestoneResponseSchema,
   placeDetailResponseSchema,
   placeResponseSchema,
   type FamilyMemberDetailResponse,
   type FamilyMemberResponse,
   type LocationResponse,
+  type MediaResponse,
   type MilestoneResponse,
   type PlaceDetailResponse,
   type PlaceResponse,
@@ -30,8 +32,22 @@ export function buildMilestone(
     familyMembers: [],
     location: null,
     place: null,
+    media: [],
     createdAt: '2024-05-01T10:00:00.000Z',
     updatedAt: '2024-05-01T10:00:00.000Z',
+    ...overrides,
+  });
+}
+
+/** A ready photo as the api returns it (GET /media, an owner's `media`). */
+export function buildMedia(overrides: Partial<MediaResponse> = {}): MediaResponse {
+  const id = overrides.id ?? nextId++;
+  return mediaResponseSchema.parse({
+    id,
+    url: `http://storage.test/time-capsule-media/media/${id}.png`,
+    contentType: 'image/png',
+    sizeBytes: 1024,
+    createdAt: '2024-05-01T10:00:00.000Z',
     ...overrides,
   });
 }
@@ -65,6 +81,7 @@ export function buildFamilyMemberDetail(
     father: null,
     children: [],
     milestones: [],
+    media: [],
     ...overrides,
   });
 }

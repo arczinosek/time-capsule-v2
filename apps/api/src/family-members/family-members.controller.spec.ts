@@ -2,8 +2,10 @@ import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
 import type {
   FamilyMemberDetailResponse,
   FamilyMemberResponse,
+  MediaResponse,
 } from '@time-capsule/shared';
 import type { FamilyMember } from '../database/schema.js';
+import { MediaService, type MediaRow } from '../media/media.service.js';
 import { FamilyMembersController } from './family-members.controller.js';
 import {
   FamilyMembersService,
@@ -37,6 +39,7 @@ describe('FamilyMembersController', () => {
         category: 'holidays_and_celebrations',
       },
     ],
+    media: [],
   };
 
   const expectedResponse: FamilyMemberResponse = {
@@ -65,14 +68,35 @@ describe('FamilyMembersController', () => {
         category: 'holidays_and_celebrations',
       },
     ],
+    media: [],
+  };
+
+  const mediaRow: MediaRow = {
+    id: 6,
+    storageKey: 'media/2f1c',
+    contentType: 'image/webp',
+    sizeBytes: 2048,
+    status: 'ready',
+    createdAt: new Date('2024-05-03T09:00:00.000Z'),
+    url: 'http://storage.test/time-capsule-media/media/2f1c?X-Amz-Signature=abc',
+  };
+
+  const expectedMediaResponse: MediaResponse = {
+    id: 6,
+    url: 'http://storage.test/time-capsule-media/media/2f1c?X-Amz-Signature=abc',
+    contentType: 'image/webp',
+    sizeBytes: 2048,
+    createdAt: '2024-05-03T09:00:00.000Z',
   };
 
   let serviceMock: DeepMocked<FamilyMembersService>;
+  let mediaServiceMock: DeepMocked<MediaService>;
   let controller: FamilyMembersController;
 
   beforeEach(() => {
     serviceMock = createMock<FamilyMembersService>();
-    controller = new FamilyMembersController(serviceMock);
+    mediaServiceMock = createMock<MediaService>();
+    controller = new FamilyMembersController(serviceMock, mediaServiceMock);
   });
 
   it('lists family members without their relations', async () => {
@@ -112,6 +136,30 @@ describe('FamilyMembersController', () => {
     });
 
     expect(serviceMock.update).toHaveBeenCalledWith(2, request);
+  });
+
+  it('maps the photos on the detail', async () => {
+    const expectedWithMedia = {
+      ...expectedDetailResponse,
+      media: [expectedMediaResponse],
+    };
+    serviceMock.findOne.mockResolvedValue({ ...detailRow, media: [mediaRow] });
+
+    await expect(controller.findOne(2)).resolves.toEqual(expectedWithMedia);
+  });
+
+  it('replaces the photos and answers the new ordered set', async () => {
+    const request = { mediaIds: [6], baseMediaIds: [5] };
+    mediaServiceMock.replaceOwnerMedia.mockResolvedValue([mediaRow]);
+
+    await expect(controller.replaceMedia(2, request)).resolves.toEqual([
+      expectedMediaResponse,
+    ]);
+
+    expect(mediaServiceMock.replaceOwnerMedia).toHaveBeenCalledWith(
+      { type: 'family_member', id: 2 },
+      request,
+    );
   });
 
   it('removes a family member', async () => {
