@@ -9,21 +9,30 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import {
   createMilestoneRequestSchema,
+  updateMilestoneMediaRequestSchema,
   updateMilestoneRequestSchema,
   type CreateMilestoneRequest,
+  type MediaResponse,
   type MilestoneResponse,
+  type UpdateMilestoneMediaRequest,
   type UpdateMilestoneRequest,
 } from '@time-capsule/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
+import { toMediaResponse } from '../media/media.mapper.js';
+import { MediaService } from '../media/media.service.js';
 import { toMilestoneResponse } from './milestone.mapper.js';
 import { MilestonesService } from './milestones.service.js';
 
 @Controller('milestones')
 export class MilestonesController {
-  constructor(private readonly milestonesService: MilestonesService) {}
+  constructor(
+    private readonly milestonesService: MilestonesService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   @Get()
   async findAll(): Promise<MilestoneResponse[]> {
@@ -56,6 +65,24 @@ export class MilestonesController {
     return toMilestoneResponse(
       await this.milestonesService.update(id, request),
     );
+  }
+
+  /**
+   * Replaces the milestone's photos with `mediaIds`, in that order, unless `baseMediaIds`
+   * is stale (409); answers the new set.
+   */
+  @Put(':id/media')
+  async replaceMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(updateMilestoneMediaRequestSchema))
+    request: UpdateMilestoneMediaRequest,
+  ): Promise<MediaResponse[]> {
+    const media = await this.mediaService.replaceOwnerMedia(
+      { type: 'milestone', id },
+      request,
+    );
+
+    return media.map(toMediaResponse);
   }
 
   @Delete(':id')

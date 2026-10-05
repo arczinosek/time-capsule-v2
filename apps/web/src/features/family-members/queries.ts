@@ -73,10 +73,12 @@ export function useDeleteFamilyMember() {
       queryClient.removeQueries({
         queryKey: familyMemberQueries.detail(id).queryKey,
       });
-      // Children lose this parent, milestones lose this participant.
+      // Children lose this parent, milestones lose this participant, and its photos linked
+      // nowhere else are deleted with it.
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: familyMembersKey }),
         queryClient.invalidateQueries({ queryKey: ['milestones'] }),
+        queryClient.invalidateQueries({ queryKey: ['media'] }),
       ]);
     },
   });

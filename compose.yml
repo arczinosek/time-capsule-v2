@@ -11,8 +11,63 @@ services:
     networks:
       - net-time-capsule
 
+  # S3-compatible media storage (dev only). The api reaches it at http://storage:9000; the
+  # browser at http://127.0.0.1:9000 (S3_ENDPOINT / S3_PUBLIC_ENDPOINT in apps/api/.env).
+  storage:
+    image: rustfs/rustfs:1.0.1
+    environment:
+      # Dev-only credentials, like MYSQL_PASSWORD above. Must equal S3_ACCESS_KEY_ID /
+      # S3_SECRET_ACCESS_KEY in apps/api/.env. Rules: key >= 3 chars, secret >= 8, no '=' or ','.
+      - RUSTFS_ACCESS_KEY=time-capsule-app
+      - RUSTFS_SECRET_KEY=time-capsule-dev-secret
+      - RUSTFS_CONSOLE_ENABLE=false # the S3 API is all the app needs; port 9001 stays closed
+      - RUSTFS_REGION=us-east-1
+    volumes:
+      - vol-storage-data:/data
+    ports:
+      # In compose.yml, not the override: every developer's browser POSTs uploads and GETs
+      # images here. Bound to the host's loopback only.
+      - '127.0.0.1:9000:9000'
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://127.0.0.1:9000/health/ready']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    networks:
+      - net-time-capsule
+
+  # One-shot and idempotent: creates the private bucket (no bucket policy) and sets its CORS
+  # rule. Bucket CORS is the only CORS RustFS applies here (no RUSTFS_CORS_ALLOWED_ORIGINS).
+  # AllowedOrigins: the web dev server under both host names; add yours if Vite runs elsewhere
+  # (then `docker compose up storage-init` again).
+  storage-init:
+    image: amazon/aws-cli:2.37.9
+    depends_on:
+      storage:
+        condition: service_healthy
+    restart: 'no'
+    environment:
+      - AWS_ACCESS_KEY_ID=time-capsule-app
+      - AWS_SECRET_ACCESS_KEY=time-capsule-dev-secret
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ENDPOINT_URL=http://storage:9000
+      - AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+      - AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+      - S3_BUCKET=time-capsule-media
+    entrypoint: ['/bin/sh', '-ec']
+    command:
+      - |
+        aws configure set default.s3.addressing_style path
+        aws s3api head-bucket --bucket "$$S3_BUCKET" >/dev/null 2>&1 || aws s3api create-bucket --bucket "$$S3_BUCKET"
+        aws s3api put-bucket-cors --bucket "$$S3_BUCKET" --cors-configuration '{"CORSRules":[{"AllowedOrigins":["http://localhost:5173","http://127.0.0.1:5173"],"AllowedMethods":["GET","HEAD","POST"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"],"MaxAgeSeconds":3000}]}'
+        aws s3api get-bucket-cors --bucket "$$S3_BUCKET"
+    networks:
+      - net-time-capsule
+
 volumes:
   vol-db-data: {}
+  vol-storage-data: {}
 
 networks:
   net-time-capsule:

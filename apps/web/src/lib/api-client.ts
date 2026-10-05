@@ -4,7 +4,7 @@ import { env } from '~/env';
 // React- and i18n-free: errors carry developer text for logs, and toErrorMessage() turns them
 // into an i18n key (or verbatim text) for the UI.
 
-type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'; // uppercase: fetch doesn't normalize 'patch'
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; // uppercase: fetch doesn't normalize 'patch'
 
 // Nest error bodies carry a `message`: an i18n key for validation, English text otherwise
 // (e.g. 'Milestone 3 not found').

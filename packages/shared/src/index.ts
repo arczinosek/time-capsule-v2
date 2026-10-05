@@ -2,6 +2,7 @@
 export * from './common.js';
 export * from './family-members.js';
 export * from './locations.js';
+export * from './media.js';
 export * from './messages.js';
 export * from './milestones.js';
 export * from './places.js';

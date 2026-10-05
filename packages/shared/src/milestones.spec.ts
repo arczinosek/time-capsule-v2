@@ -208,6 +208,7 @@ describe('milestone schemas', () => {
       familyMembers: [],
       location: null,
       place: null,
+      media: [],
       createdAt: '2024-05-01T10:00:00.000Z',
       updatedAt: '2024-05-01T10:00:00.000Z',
     };
@@ -273,6 +274,42 @@ describe('milestone schemas', () => {
 
       expect(milestoneResponseSchema.safeParse(withoutLocation).success).toBe(false);
       expect(milestoneResponseSchema.safeParse(withoutPlace).success).toBe(false);
+    });
+
+    it('accepts the photos', () => {
+      const expectedMilestone = {
+        ...milestone,
+        media: [
+          {
+            id: 4,
+            url: 'http://storage.test/media/4.png',
+            contentType: 'image/png',
+            sizeBytes: 1024,
+            createdAt: '2024-05-01T10:00:00.000Z',
+          },
+        ],
+      };
+
+      expect(milestoneResponseSchema.parse(expectedMilestone)).toEqual(
+        expectedMilestone,
+      );
+    });
+
+    it('rejects a photo whose url is not a URL', () => {
+      expect(
+        milestoneResponseSchema.safeParse({
+          ...milestone,
+          media: [
+            {
+              id: 4,
+              url: 'media/4.png',
+              contentType: 'image/png',
+              sizeBytes: 1024,
+              createdAt: '2024-05-01T10:00:00.000Z',
+            },
+          ],
+        }).success,
+      ).toBe(false);
     });
 
     it('rejects Date timestamps: the wire format is ISO strings', () => {

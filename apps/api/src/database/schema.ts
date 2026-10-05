@@ -1,5 +1,6 @@
 import {
   FAMILY_MEMBER_KINDS,
+  MEDIA_CONTENT_TYPES,
   MILESTONE_CATEGORIES,
 } from '@time-capsule/shared';
 import {
@@ -7,6 +8,7 @@ import {
   date,
   decimal,
   index,
+  int,
   mysqlEnum,
   mysqlTable,
   primaryKey,
@@ -118,7 +120,69 @@ export const milestoneFamilyMembers = mysqlTable(
   ],
 );
 
+/**
+ * Upload state, api-internal (never on the wire): `pending` from POST /media until confirm
+ * finds the object in storage, then `ready`. Only ready media are shown or linkable.
+ */
+const MEDIA_STATUSES = ['pending', 'ready'] as const;
+
+/** A photo in the media library. The object lives in S3-compatible storage under storageKey. */
+export const media = mysqlTable(
+  'media',
+  {
+    id: serial('id').primaryKey(),
+    // 'media/<uuid>'. Never in a response: read URLs are presigned from it.
+    storageKey: varchar('storage_key', { length: 255 }).notNull().unique(),
+    contentType: mysqlEnum('content_type', MEDIA_CONTENT_TYPES).notNull(),
+    // The declared size; confirm requires the stored object to match it.
+    sizeBytes: int('size_bytes', { unsigned: true }).notNull(),
+    status: mysqlEnum('status', MEDIA_STATUSES).notNull().default('pending'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  // For the purge of stale pending uploads.
+  (table) => [
+    index('media_status_created_at_idx').on(table.status, table.createdAt),
+  ],
+);
+
+/** A milestone's photos, in gallery order. Deleting either side removes the link. */
+export const milestoneMedia = mysqlTable(
+  'milestone_media',
+  {
+    milestoneId: fkId('milestone_id')
+      .notNull()
+      .references(() => milestones.id, { onDelete: 'cascade' }),
+    mediaId: fkId('media_id')
+      .notNull()
+      .references(() => media.id, { onDelete: 'cascade' }),
+    position: int('position', { unsigned: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.milestoneId, table.mediaId] }),
+    index('milestone_media_media_id_idx').on(table.mediaId),
+  ],
+);
+
+/** A family member's photos, in gallery order. Deleting either side removes the link. */
+export const familyMemberMedia = mysqlTable(
+  'family_member_media',
+  {
+    familyMemberId: fkId('family_member_id')
+      .notNull()
+      .references(() => familyMembers.id, { onDelete: 'cascade' }),
+    mediaId: fkId('media_id')
+      .notNull()
+      .references(() => media.id, { onDelete: 'cascade' }),
+    position: int('position', { unsigned: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.familyMemberId, table.mediaId] }),
+    index('family_member_media_media_id_idx').on(table.mediaId),
+  ],
+);
+
 export type Location = typeof locations.$inferSelect;
 export type Place = typeof places.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;
 export type FamilyMember = typeof familyMembers.$inferSelect;
+export type Media = typeof media.$inferSelect;

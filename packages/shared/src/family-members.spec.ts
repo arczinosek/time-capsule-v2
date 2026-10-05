@@ -245,6 +245,7 @@ describe('family member schemas', () => {
             category: 'holidays_and_celebrations',
           },
         ],
+        media: [],
       };
 
       expect(familyMemberDetailResponseSchema.parse(expectedDetail)).toEqual(

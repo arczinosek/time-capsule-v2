@@ -29,6 +29,13 @@
       "when": 1791137987641,
       "tag": "0003_add_locations_and_places",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791139769857,
+      "tag": "0004_add_media",
+      "breakpoints": true
     }
   ]
 }

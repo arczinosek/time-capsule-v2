@@ -82,6 +82,9 @@ export function useDeleteMilestone() {
         }),
         queryClient.invalidateQueries({ queryKey: familyMembersKey }),
         queryClient.invalidateQueries({ queryKey: placesKey }),
+        // Its photos linked nowhere else are deleted with it (features/media imports this
+        // module, so the key is spelled here).
+        queryClient.invalidateQueries({ queryKey: ['media'] }),
       ]);
     },
   });

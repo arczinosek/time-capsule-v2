@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { milestoneQueries } from '~/features/milestones/queries';
 import { setLanguage } from '~/i18n';
-import { buildMilestone, buildPlaceDetail } from '~/test/fixtures';
+import { buildMilestone, buildPlace, buildPlaceDetail } from '~/test/fixtures';
 import { renderRoute } from '~/test/render-route';
 import { apiUrl, server } from '~/test/server';
 
@@ -133,8 +133,8 @@ describe('/places (places list)', () => {
     server.use(
       http.get(apiUrl('/places'), () =>
         HttpResponse.json([
-          buildPlaceDetail({ id: 5, name: 'Home', location }),
-          buildPlaceDetail({ id: 6, name: 'Somewhere' }),
+          buildPlace({ id: 5, name: 'Home', location }),
+          buildPlace({ id: 6, name: 'Somewhere' }),
         ]),
       ),
     );

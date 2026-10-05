@@ -9,16 +9,22 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import {
   createFamilyMemberRequestSchema,
+  updateFamilyMemberMediaRequestSchema,
   updateFamilyMemberRequestSchema,
   type CreateFamilyMemberRequest,
   type FamilyMemberDetailResponse,
   type FamilyMemberResponse,
+  type MediaResponse,
+  type UpdateFamilyMemberMediaRequest,
   type UpdateFamilyMemberRequest,
 } from '@time-capsule/shared';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
+import { toMediaResponse } from '../media/media.mapper.js';
+import { MediaService } from '../media/media.service.js';
 import {
   toFamilyMemberDetailResponse,
   toFamilyMemberResponse,
@@ -27,7 +33,10 @@ import { FamilyMembersService } from './family-members.service.js';
 
 @Controller('family-members')
 export class FamilyMembersController {
-  constructor(private readonly familyMembersService: FamilyMembersService) {}
+  constructor(
+    private readonly familyMembersService: FamilyMembersService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   @Get()
   async findAll(): Promise<FamilyMemberResponse[]> {
@@ -64,6 +73,24 @@ export class FamilyMembersController {
     return toFamilyMemberDetailResponse(
       await this.familyMembersService.update(id, request),
     );
+  }
+
+  /**
+   * Replaces the family member's photos with `mediaIds`, in that order, unless
+   * `baseMediaIds` is stale (409); answers the new set.
+   */
+  @Put(':id/media')
+  async replaceMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(updateFamilyMemberMediaRequestSchema))
+    request: UpdateFamilyMemberMediaRequest,
+  ): Promise<MediaResponse[]> {
+    const media = await this.mediaService.replaceOwnerMedia(
+      { type: 'family_member', id },
+      request,
+    );
+
+    return media.map(toMediaResponse);
   }
 
   @Delete(':id')

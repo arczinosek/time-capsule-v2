@@ -3,6 +3,7 @@ import type {
   FamilyMemberResponse,
 } from '@time-capsule/shared';
 import type { FamilyMember } from '../database/schema.js';
+import { toMediaResponse } from '../media/media.mapper.js';
 import { toMilestoneSummary } from '../milestones/milestone-summary.js';
 import { toFamilyMemberSummary } from './family-member-summary.js';
 import type { FamilyMemberDetailRow } from './family-members.service.js';
@@ -33,5 +34,6 @@ export function toFamilyMemberDetailResponse(
     father: familyMember.father && toFamilyMemberSummary(familyMember.father),
     children: familyMember.children.map(toFamilyMemberSummary),
     milestones: familyMember.milestones.map(toMilestoneSummary),
+    media: familyMember.media.map(toMediaResponse),
   };
 }

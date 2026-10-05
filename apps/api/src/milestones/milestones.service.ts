@@ -16,6 +16,7 @@ import {
   familyMembers,
   locations,
   milestoneFamilyMembers,
+  milestoneMedia,
   milestones,
   places,
   type Milestone,
@@ -28,6 +29,7 @@ import {
   locationSummaryColumns,
   type LocationSummaryRow,
 } from '../locations/location-summary.js';
+import { MediaService, type MediaRow } from '../media/media.service.js';
 import {
   placeSummaryColumns,
   type PlaceSummaryRow,
@@ -40,14 +42,19 @@ export type MilestoneRow = Milestone & {
   location: LocationSummaryRow | null;
   /** Derived: the place that owns the location. */
   place: PlaceSummaryRow | null;
+  /** Ready photos, in gallery order. */
+  media: MediaRow[];
 };
 
-/** What one query reads; the participants are attached by a second, batched one. */
-type MilestoneJoinedRow = Omit<MilestoneRow, 'familyMembers'>;
+/** What one query reads; participants and photos are attached by batched queries. */
+type MilestoneJoinedRow = Omit<MilestoneRow, 'familyMembers' | 'media'>;
 
 @Injectable()
 export class MilestonesService {
-  constructor(@Inject(DRIZZLE) private readonly db: Database) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly db: Database,
+    private readonly mediaService: MediaService,
+  ) {}
 
   // TODO: paging results
   async findAll(): Promise<MilestoneRow[]> {
@@ -131,13 +138,42 @@ export class MilestonesService {
   }
 
   // Idempotent: deleting a missing milestone is not an error, it just affects 0 rows.
-  // The foreign keys remove its participant links.
+  // The foreign keys remove its participant and photo links; photos linked nowhere else are
+  // deleted with it (rows here, objects after the commit).
   async remove(id: number): Promise<number> {
-    const [result] = await this.db
-      .delete(milestones)
-      .where(eq(milestones.id, id));
+    const { affectedRows, orphanKeys } = await this.db.transaction(
+      async (tx) => {
+        // Lock order as everywhere: the owner, then its links, then media (deleteOrphans).
+        const [owner] = await tx
+          .select({ id: milestones.id })
+          .from(milestones)
+          .where(eq(milestones.id, id))
+          .for('update');
 
-    return result.affectedRows;
+        if (!owner) return { affectedRows: 0, orphanKeys: [] };
+
+        // A locking read: see (and hold) the links as they are now, not as of a snapshot.
+        const links = await tx
+          .select({ mediaId: milestoneMedia.mediaId })
+          .from(milestoneMedia)
+          .where(eq(milestoneMedia.milestoneId, id))
+          .for('update');
+        const [result] = await tx
+          .delete(milestones)
+          .where(eq(milestones.id, id));
+
+        return {
+          affectedRows: result.affectedRows,
+          orphanKeys: await this.mediaService.deleteOrphans(
+            tx,
+            links.map(({ mediaId }) => mediaId),
+          ),
+        };
+      },
+    );
+
+    await this.mediaService.deleteObjects(orphanKeys);
+    return affectedRows;
   }
 
   private selectMilestones() {
@@ -156,12 +192,15 @@ export class MilestonesService {
       .$dynamic();
   }
 
-  /** Attaches the participants of every row with one query. */
+  /** Attaches the participants and the photos of every row, one query each. */
   private async withRelations(
     rows: MilestoneJoinedRow[],
   ): Promise<MilestoneRow[]> {
     if (rows.length === 0) return [];
 
+    const mediaByMilestone = await this.mediaService.findForMilestones(
+      rows.map((row) => row.id),
+    );
     const links = await this.db
       .select({
         milestoneId: milestoneFamilyMembers.milestoneId,
@@ -191,6 +230,7 @@ export class MilestonesService {
     return rows.map((row) => ({
       ...row,
       familyMembers: byMilestone.get(row.id) ?? [],
+      media: mediaByMilestone.get(row.id) ?? [],
     }));
   }
 

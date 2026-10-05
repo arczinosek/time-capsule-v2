@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { descriptionSchema, idSchema, isoDateSchema } from './common.js';
+import { mediaResponseSchema } from './media.js';
 import { messages, type MessageKey } from './messages.js';
 import { milestoneSummarySchema } from './milestones.js';
 import {
@@ -90,6 +91,8 @@ export const familyMemberDetailResponseSchema = familyMemberResponseSchema.exten
   children: z.array(familyMemberSummarySchema),
   /** Sorted by date, oldest first. */
   milestones: z.array(milestoneSummarySchema),
+  /** Ready photos, in gallery order. */
+  media: z.array(mediaResponseSchema),
 });
 
 export type CreateFamilyMemberRequest = z.infer<

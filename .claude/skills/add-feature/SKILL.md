@@ -13,7 +13,9 @@ the database, a picker of other rows), family members is the reference: `family-
 **optional 1:1 link** (a nullable UNIQUE FK, a value derived through it, `ON DELETE SET NULL`,
 creating the linked row from a dialog inside the form) and **heavy browser-only UI** (maps),
 locations and places are the reference: `locations.ts`, `places.ts`, `apps/api/src/places/*`,
-`features/locations/*`, `features/places/*`. This skill covers **order**, **wiring** and the **traps** that actually bit
+`features/locations/*`, `features/places/*`. For **files** (photos on an owner, direct-to-storage
+uploads, an ordered replace-set over a shared library) media is the reference: `media.ts`,
+`apps/api/src/{storage,media}/*`, `features/media/*`, `lib/upload.ts`. This skill covers **order**, **wiring** and the **traps** that actually bit
 while the reference was built.
 
 The order matters because each layer compiles against the one before it. The contract comes
@@ -326,6 +328,29 @@ which also type-checks specs through `tsconfig.test.json`).
     back to the base key when no `_one`/`_other` exists.
   - Don't call `i18n.changeLanguage` while a tree is mounted outside `act`; in specs switch
     through the UI (`user.selectOptions`) or before rendering.
+- **Media** (photos; reference `apps/api/src/media/*`, `features/media/*`, CLAUDE.md "Media/storage"):
+  - An owner with media (milestone, family member) must, in its service's `remove`, lock the
+    owner row `FOR UPDATE` (absent: return 0), then its link rows `FOR UPDATE`, delete the owner
+    and call `mediaService.deleteOrphans(tx, ids)` in the same transaction, then
+    `mediaService.deleteObjects(keys)` after commit. Otherwise photos linked nowhere else stay
+    behind as rows and S3 objects (the join rows cascade silently). The lock order (owner, links,
+    media) is the same on every media path, so they can't deadlock each other.
+  - A new owner type needs a slug in `MEDIA_TARGET_TYPES`, its own join table and cap (counted
+    with pending uploads under `FOR UPDATE` on the owner), and a `PUT /<owner>/:id/media` that
+    goes through `replaceOwnerMedia` with `{ mediaIds, baseMediaIds }` (409
+    `validation.media.stale` when the base isn't the current ready set; the web sends the ids
+    on screen).
+  - Every response fixture of an owner needs `media: []` (shared spec fixtures, `buildMilestone`,
+    `buildFamilyMemberDetail`), or `parse` fails.
+  - e2e that create, confirm or read media override storage:
+    `.overrideProvider(StorageService).useValue(new FakeStorageService())`
+    (`test/support/fake-storage.ts`). Only `test/storage.e2e-spec.ts` uses the real RustFS, and it
+    skips with a warning when storage is unreachable.
+  - Web: an owner's delete hook invalidates `['media']` (spelled as a literal: `features/media`
+    imports the owners' keys, never the reverse), because its orphaned photos leave the library.
+  - Web specs can't use MSW for the storage POST (its XHR interceptor can't read jsdom's
+    `FormData`): stub `XMLHttpRequest` like `media-section.spec.tsx`, and pick a file the input's
+    `accept` refuses with `renderRoute(path, { applyAccept: false })`.
 - **Web build order** is `vite build && tsc -b`, because the router plugin must write
   `routeTree.gen.ts` before the type-check.
 - **Git**: stage nothing unless the user asks. `git mv` / `git rm --cached` touch the index, so
