@@ -19,9 +19,7 @@ import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import { toMediaResponse } from './media.mapper.js';
 import { MediaService } from './media.service.js';
 
-// The library and uploads. Linking media to an owner is PUT /<owner>/:id/media, in the
-// owner's controller.
-@Controller('media')
+@Controller('/media')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
@@ -43,13 +41,15 @@ export class MediaController {
     return { mediaId, url, fields };
   }
 
-  @Post(':id/confirm')
+  @Post('/:id/confirm')
   @HttpCode(HttpStatus.OK)
   async confirm(@Param('id', ParseIntPipe) id: number): Promise<MediaResponse> {
-    return toMediaResponse(await this.mediaService.confirm(id));
+    const mediaRow = await this.mediaService.confirm(id);
+
+    return toMediaResponse(mediaRow);
   }
 
-  @Delete(':id')
+  @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     await this.mediaService.remove(id);

@@ -7,12 +7,12 @@ import { FieldValidationError } from './field-validation.error.js';
 
 describe('FieldValidationErrorFilter', () => {
   it('replies 400 with the shared validation error body, one key per field', () => {
-    const adapterHost = createMock<HttpAdapterHost>();
     const response = {};
-    const host = createMock<ArgumentsHost>({
+    const adapterHostMock = createMock<HttpAdapterHost>();
+    const hostMock = createMock<ArgumentsHost>({
       switchToHttp: () => ({ getResponse: () => response }),
     });
-    const filter = new FieldValidationErrorFilter(adapterHost);
+
     const expectedBody = {
       message: 'validation.failed',
       errors: {
@@ -24,15 +24,17 @@ describe('FieldValidationErrorFilter', () => {
       },
     };
 
+    const filter = new FieldValidationErrorFilter(adapterHostMock);
+
     filter.catch(
       new FieldValidationError({
         motherId: messages.familyMemberNotFound,
         fatherId: messages.ownParent,
       }),
-      host,
+      hostMock,
     );
 
-    expect(adapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+    expect(adapterHostMock.httpAdapter.reply).toHaveBeenCalledWith(
       response,
       expectedBody,
       400,
