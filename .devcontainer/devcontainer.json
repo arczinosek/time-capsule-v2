@@ -35,7 +35,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"Anthropic.claude-code"
+				"Anthropic.claude-code",
+				"vitest.explorer"
 			]
 		}
 	},

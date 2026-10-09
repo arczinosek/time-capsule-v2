@@ -1,0 +1,3 @@
+{
+  "vitest.configSearchPatternInclude": "{vitest.config.ts,apps/api/vitest.config.e2e.ts}"
+}
