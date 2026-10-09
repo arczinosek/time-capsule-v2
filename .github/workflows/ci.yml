@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, build, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version from packageManager in package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm test
+
+  e2e:
+    name: api e2e (MySQL + RustFS)
+    runs-on: ubuntu-latest
+    # Mirror compose.yml (images, credentials): keep the two in sync.
+    services:
+      database:
+        image: mysql:lts
+        env:
+          MYSQL_DATABASE: time-capsule
+          MYSQL_USER: time-capsule-app
+          MYSQL_PASSWORD: eluspac-emit
+          MYSQL_ROOT_PASSWORD: toor
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 30
+      storage:
+        image: rustfs/rustfs:1.0.1
+        env:
+          RUSTFS_ACCESS_KEY: time-capsule-app
+          RUSTFS_SECRET_KEY: time-capsule-dev-secret
+          RUSTFS_CONSOLE_ENABLE: 'false'
+          RUSTFS_REGION: us-east-1
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -fsS http://127.0.0.1:9000/health/ready"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+          --health-start-period 10s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Write apps/api/.env (services on localhost)
+        run: >-
+          sed -e 's#@database:3306#@127.0.0.1:3306#'
+          -e 's#http://storage:9000#http://127.0.0.1:9000#'
+          apps/api/.env.example > apps/api/.env
+      - name: Create the media bucket
+        env:
+          AWS_ACCESS_KEY_ID: time-capsule-app
+          AWS_SECRET_ACCESS_KEY: time-capsule-dev-secret
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://127.0.0.1:9000
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          aws configure set default.s3.addressing_style path
+          aws s3api create-bucket --bucket time-capsule-media
+      - run: pnpm --filter api db:migrate
+      - run: pnpm test:e2e
