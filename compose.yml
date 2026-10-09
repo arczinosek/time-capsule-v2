@@ -17,7 +17,8 @@ services:
     image: rustfs/rustfs:1.0.1
     environment:
       # Dev-only credentials, like MYSQL_PASSWORD above. Must equal S3_ACCESS_KEY_ID /
-      # S3_SECRET_ACCESS_KEY in apps/api/.env. Rules: key >= 3 chars, secret >= 8, no '=' or ','.
+      # S3_SECRET_ACCESS_KEY in apps/api/.env and the keys in .devcontainer/aws-config.
+      # Rules: key >= 3 chars, secret >= 8, no '=' or ','.
       - RUSTFS_ACCESS_KEY=time-capsule-app
       - RUSTFS_SECRET_KEY=time-capsule-dev-secret
       - RUSTFS_CONSOLE_ENABLE=false # the S3 API is all the app needs; port 9001 stays closed

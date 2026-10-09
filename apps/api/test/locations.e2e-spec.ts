@@ -34,15 +34,19 @@ describe('LocationsController (e2e)', () => {
 
   afterAll(async () => {
     const server = app.getHttpServer();
+
     for (const id of milestoneIds) {
       await request(server).delete(`/milestones/${id}`);
     }
+
     for (const id of placeIds) {
       await request(server).delete(`/places/${id}`);
     }
+
     for (const id of locationIds) {
       await request(server).delete(`/locations/${id}`);
     }
+
     await app.close();
   });
 
@@ -51,8 +55,11 @@ describe('LocationsController (e2e)', () => {
       .post('/locations')
       .send(body)
       .expect(201);
+
     const location = locationResponseSchema.parse(res.body);
+
     locationIds.push(location.id);
+
     return location;
   }
 

@@ -1,3 +1,4 @@
+.claude/settings.local.json
+CLAUDE.local.md
 compose.override.yml
 node_modules/
-CLAUDE.local.md

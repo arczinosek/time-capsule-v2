@@ -1,0 +1,12 @@
+# AWS CLI profile for the local RustFS (compose `storage`). Use: aws --profile rustfs s3 ls
+# Credentials must equal RUSTFS_ACCESS_KEY / RUSTFS_SECRET_KEY in compose.yml.
+# A named profile only: no [default], so the api's AWS SDK never falls back to it.
+[profile rustfs]
+region = us-east-1
+endpoint_url = http://storage:9000
+aws_access_key_id = time-capsule-app
+aws_secret_access_key = time-capsule-dev-secret
+request_checksum_calculation = when_required
+response_checksum_validation = when_required
+s3 =
+  addressing_style = path

@@ -56,7 +56,9 @@ There is one lockfile (`pnpm-lock.yaml`) at the root. Each package keeps its own
 
 ```
 .
-├── .devcontainer/        # Dev container: Node 24 (Debian trixie), pnpm store mount, Claude Code
+├── .devcontainer/        # Dev container: Node 24 (Debian trixie), pnpm store mount, Claude Code,
+│                         # AWS CLI (profile `rustfs` in aws-config, for inspecting local storage)
+├── .github/workflows/ci.yml # CI: lint, build, unit tests; api e2e with MySQL + RustFS service containers
 ├── compose.yml           # Docker Compose: `database` (mysql:lts), `storage` (RustFS 1.0.1, S3 API on 127.0.0.1:9000),
 │                         # `storage-init` (one-shot: private bucket + CORS); external network net-time-capsule
 ├── compose.override.yml  # Local overrides (gitignored)
@@ -134,6 +136,10 @@ pnpm --filter api db:migrate            # apply migrations
 ```
 
 `test/storage.e2e-spec.ts` runs against the real RustFS; when storage is unreachable it skips with a warning (a config error, such as wrong keys or a missing bucket, fails it). Every other e2e needs only MySQL (`test/media.e2e-spec.ts` overrides `StorageService` with `FakeStorageService`). Media survive `docker compose down`/`up`; `down -v` wipes them together with MySQL.
+
+CI (`.github/workflows/ci.yml`, on pushes to `main` and on pull requests) runs `pnpm lint`, `pnpm build` and `pnpm test` in one job, and `pnpm test:e2e` in another against MySQL and RustFS service containers (bucket created with the aws CLI, `apps/api/.env` written from `.env.example` with the hosts set to `127.0.0.1`), so the storage e2e runs there instead of skipping. The services mirror `compose.yml`: change images or credentials in both (and the storage keys in `.devcontainer/aws-config` too).
+
+Inspect the local storage from the dev container with the AWS CLI's `rustfs` profile: `aws --profile rustfs s3 ls s3://time-capsule-media` (there is no default profile, so the api's SDK never falls back to it).
 
 Workspace (from the repo root):
 

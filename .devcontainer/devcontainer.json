@@ -6,9 +6,14 @@
 		"dockerfile": "Dockerfile"
 	},
 
-	// Join the external network shared with compose.yml, so the `database` service is reachable by name.
+	// Join the external network shared with compose.yml, so the `database` and `storage` services are reachable by name.
 	// Create it once on the host: docker network create net-time-capsule
 	"runArgs": ["--network=net-time-capsule"],
+
+	// The AWS CLI's `rustfs` profile for the local storage (no default profile).
+	"containerEnv": {
+		"AWS_CONFIG_FILE": "${containerWorkspaceFolder}/.devcontainer/aws-config"
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
