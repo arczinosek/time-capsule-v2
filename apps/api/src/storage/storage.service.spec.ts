@@ -5,7 +5,7 @@ import {
   S3ServiceException,
 } from '@aws-sdk/client-s3';
 import { createMock, type DeepMocked } from '@golevelup/ts-vitest';
-import { Logger } from '@nestjs/common';
+import type { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env.js';
 import { createS3Client } from './s3-client.js';
@@ -19,25 +19,27 @@ const env = {
 };
 
 describe('StorageService', () => {
-  let client: DeepMocked<S3Client>;
+  let clientMock: DeepMocked<S3Client>;
+  let loggerMock: DeepMocked<Logger>;
   let presignClient: S3Client;
   let service: StorageService;
 
   beforeEach(() => {
-    client = createMock<S3Client>();
+    clientMock = createMock<S3Client>();
+    loggerMock = createMock<Logger>();
     // A real client: signing is offline, and the signatures are what's under test.
     presignClient = createS3Client(env, 'http://s3.public.test:9000');
     service = new StorageService(
-      client,
+      clientMock,
       presignClient,
       new ConfigService<Env, true>({ S3_BUCKET: 'time-capsule-media' }),
+      loggerMock,
     );
   });
 
   afterEach(() => {
     presignClient.destroy();
     vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
   describe('createUpload', () => {
@@ -123,7 +125,7 @@ describe('StorageService', () => {
   describe('head', () => {
     it('returns the size and type of the stored object', async () => {
       // send() is overloaded; its mock is typed after the callback form, which returns void.
-      client.send.mockImplementation(() =>
+      clientMock.send.mockImplementation(() =>
         Promise.resolve({ ContentLength: 67, ContentType: 'image/png' }),
       );
 
@@ -131,11 +133,13 @@ describe('StorageService', () => {
         size: 67,
         contentType: 'image/png',
       });
-      expect(client.send).toHaveBeenCalledWith(expect.any(HeadObjectCommand));
+      expect(clientMock.send).toHaveBeenCalledWith(
+        expect.any(HeadObjectCommand),
+      );
     });
 
     it('returns null when there is no object', async () => {
-      client.send.mockRejectedValue(
+      clientMock.send.mockRejectedValue(
         new NotFound({
           message: 'NotFound',
           $metadata: { httpStatusCode: 404 },
@@ -151,23 +155,20 @@ describe('StorageService', () => {
         $fault: 'client',
         $metadata: { httpStatusCode: 403 },
       });
-      client.send.mockRejectedValue(error);
+      clientMock.send.mockRejectedValue(error);
 
       await expect(service.head('media/abc')).rejects.toBe(error);
     });
   });
 
   it('deleteMany logs failures and never throws', async () => {
-    const warn = vi
-      .spyOn(Logger.prototype, 'warn')
-      .mockImplementation(() => {});
-    client.send.mockRejectedValue(new Error('storage down'));
+    clientMock.send.mockRejectedValue(new Error('storage down'));
 
     await expect(
       service.deleteMany(['media/a', 'media/b']),
     ).resolves.toBeUndefined();
 
-    expect(client.send).toHaveBeenCalledTimes(2);
-    expect(warn).toHaveBeenCalledTimes(2);
+    expect(clientMock.send).toHaveBeenCalledTimes(2);
+    expect(loggerMock.warn).toHaveBeenCalledTimes(2);
   });
 });

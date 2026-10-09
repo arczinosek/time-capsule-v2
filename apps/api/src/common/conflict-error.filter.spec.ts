@@ -7,21 +7,22 @@ import { ConflictError } from './conflict.error.js';
 
 describe('ConflictErrorFilter', () => {
   it('replies 409 with the ConflictException body and the key as its message', () => {
-    const adapterHost = createMock<HttpAdapterHost>();
     const response = {};
-    const host = createMock<ArgumentsHost>({
+    const adapterHostMock = createMock<HttpAdapterHost>();
+    const hostMock = createMock<ArgumentsHost>({
       switchToHttp: () => ({ getResponse: () => response }),
     });
-    const filter = new ConflictErrorFilter(adapterHost);
+    const filter = new ConflictErrorFilter(adapterHostMock);
+
     const expectedBody = {
       statusCode: 409,
       message: 'validation.media.capMilestone',
       error: 'Conflict',
     };
 
-    filter.catch(new ConflictError(messages.mediaCapMilestone), host);
+    filter.catch(new ConflictError(messages.mediaCapMilestone), hostMock);
 
-    expect(adapterHost.httpAdapter.reply).toHaveBeenCalledWith(
+    expect(adapterHostMock.httpAdapter.reply).toHaveBeenCalledWith(
       response,
       expectedBody,
       409,

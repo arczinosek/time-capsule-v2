@@ -36,13 +36,13 @@ function floorToHour(time: number): Date {
 /** The only code that talks to S3. Keys and URLs never leave the api except as signed URLs. */
 @Injectable()
 export class StorageService {
-  private readonly logger = new Logger(StorageService.name);
   private readonly bucket: string;
 
   constructor(
     @Inject(S3_CLIENT) private readonly client: S3Client,
     @Inject(S3_PRESIGN_CLIENT) private readonly presignClient: S3Client,
     config: ConfigService<Env, true>,
+    private readonly logger: Logger,
   ) {
     this.bucket = config.get('S3_BUCKET', { infer: true });
   }

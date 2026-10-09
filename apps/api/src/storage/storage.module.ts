@@ -1,5 +1,5 @@
 import type { S3Client } from '@aws-sdk/client-s3';
-import { Inject, Module, OnApplicationShutdown } from '@nestjs/common';
+import { Inject, Logger, Module, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env.js';
 import { createS3Client, S3_CLIENT, S3_PRESIGN_CLIENT } from './s3-client.js';
@@ -16,6 +16,7 @@ function s3Env(config: ConfigService<Env, true>) {
 
 @Module({
   providers: [
+    { provide: Logger, useValue: new Logger(StorageModule.name) },
     {
       provide: S3_CLIENT,
       inject: [ConfigService],

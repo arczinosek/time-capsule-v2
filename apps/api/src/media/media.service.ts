@@ -72,11 +72,10 @@ const owners = {
  */
 @Injectable()
 export class MediaService {
-  private readonly logger = new Logger(MediaService.name);
-
   constructor(
     @Inject(DRIZZLE) private readonly db: Database,
     private readonly storage: StorageService,
+    private readonly logger: Logger,
   ) {}
 
   /**

@@ -14,14 +14,22 @@ export class FieldValidationErrorFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
   catch(error: FieldValidationError, host: ArgumentsHost): void {
-    const fieldErrors: Record<string, string[]> = {};
-    for (const [field, message] of Object.entries(error.fieldErrors)) {
-      if (message) fieldErrors[field] = [message];
-    }
+    const fieldErrors = Object.entries(error.fieldErrors).reduce(
+      (acc, [field, message]) => {
+        if (message) {
+          acc[field] = [message];
+        }
+
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+
     const body: ValidationErrorBody = {
       message: messages.failed,
       errors: { formErrors: [], fieldErrors },
     };
+
     const exception = new BadRequestException(body);
 
     this.httpAdapterHost.httpAdapter.reply(
